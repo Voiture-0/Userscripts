@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -13,8 +13,17 @@
 
 
 (function() {
-    'use strict';
+	'use strict';
 
+	/******************************************/
+	
+	jQuery.fn.getParent = function(num) {
+		var last = this[0];
+		for (var i = 0; i < num; i++) {
+			last = last.parentNode;
+		}
+		return jQuery(last);
+	};
 
 	/******************************************/
 
@@ -33,8 +42,10 @@
 		space: 4,
 	};
 
-		
+	
+	
 	/******************************************/
+
 
 	var chatPollingDelay = 2000;	// milliseconds
 
@@ -44,50 +55,45 @@
 
 	function emoteBack(emote) {
 		const { mentionedBy, emoted } = getLastEmotedMessage();
-		document.querySelector('#chat-emote-back-btn > .emote.voiture-btn-icon').className = 'emote voiture-btn-icon';
+		$('#chat-emote-back-btn > .emote.voiture-btn-icon')
+			.removeClass()
+			.addClass('emote voiture-btn-icon');
+
 		if(emoted && mentionedBy && mentionedBy !== config.username) {	
 			const emoteMessage = buildResponse(mentionedBy, emoted);
 			sendChatMessage(emoteMessage);
 		}
 	}
 	function getLastEmotedMessage() {
-		var mentions = document.querySelectorAll('div.msg-chat.msg-user.msg-highlight > span.text > span.chat-user');//selectorContainsText('div.msg-chat.msg-user.msg-highlight > span.text > span.chat-user', user);
-		let emoted = null;
-		let mentionedBy = null;
-		let messageTime = null;
-		if(mentions.length > 0) {
-			for(let i = mentions.length-1; i >= 0 && !emoted; --i) {
-				let nextSibling = mentions[i].nextElementSibling;
-				while(nextSibling && !emoted) {
-					if(nextSibling.classList.contains('emote')) {
-						mentionedBy = nextSibling.parentElement.parentElement.querySelector('a.user').innerText;
-						if(mentionedBy !== config.username) {
-							emoted = nextSibling.className.replace('emote', '').trim();
-							messageTime = new Date(nextSibling.parentElement.parentElement.querySelector('time.time').title.replace(/([0-9]{1,2})(st|rd|th)/, '$1'));
-							break;
-						}
-					}
-					nextSibling = nextSibling.nextElementSibling;
-				}
-			}
-		}
-		return { mentionedBy, emoted, messageTime };
-	}
+		const mention = $('.msg-chat.msg-user.msg-highlight .text .chat-user:contains("Voiture") + .emote')
+			.filter(':last')
+			.getParent(2);
+		const mentionedBy = mention
+			.find('a.user')
+			.text();
+		const emote = mention
+			.find('.text .chat-user:contains("Voiture") + .emote')
+			.filter(':last')
+			.attr('class')
+			.replace('emote', '')
+			.trim();
+		const messageTime = new Date(
+			mention
+				.find('time.time')
+				.attr('title')
+				.replace(/([0-9]{1,2})(st|rd|th)/, '$1')
+			);
 
-	function selectorContainsText(selector, text) {
-	var elements = document.querySelectorAll(selector);
-	return Array.prototype.filter.call(elements, function(element){
-		return RegExp(text).test(element.textContent);
-	});
+		return { mentionedBy, emote, messageTime };
 	}
 
 	function buildResponse(mentionedBy, emoted) {
 		return mentionedBy + ' ' + emoted;
 	}
 	function sendChatMessage(message) {
-		const chatBox = document.getElementById('chat-input-control');
-		chatBox.value = message;
-		simulateEnterKeyPress(chatBox);
+		const chatBox = $('#chat-input-control');
+		chatBox.text(message);
+		simulateEnterKeyPress(chatBox[0]);
 	}
 	function simulateEnterKeyPress(elem) {
 		elem.dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
@@ -95,15 +101,18 @@
 
 
 	function observeChatMentions() {
-		const {mentionedBy, emoted, messageTime} = getLastEmotedMessage();
-		if (emoted && (currentUser !== mentionedBy || currentEmote !== emoted) && (lastMessageTime <= messageTime)) {
-			currentEmote = emoted;
+		const { mentionedBy, emote, messageTime } = getLastEmotedMessage();
+		if (emote && (currentUser !== mentionedBy || currentEmote !== emote) && (lastMessageTime <= messageTime)) {
+			currentEmote = emote;
 			currentUser = mentionedBy;
 			lastMessageTime = messageTime;
 			
-			document.getElementById('chat-emote-back-btn').title = mentionedBy + ' ' + emoted;
-			document.getElementById('chat-emote-back-btn').setAttribute('onclick', `emoteBack('${emoted}')`);
-			document.getElementById('chat-emote-back-btn').children[0].className = `voiture-btn-icon emote ${emoted}`;
+			$('#chat-emote-back-btn')
+				.attr('title', mentionedBy + ' ' + emote)
+				.click(emoteBack(emote))
+				.children(':first')
+					.removeClass()
+					.addClass(`voiture-btn-icon emote ${emote}`);
 		}
 	}
 
@@ -111,31 +120,30 @@
 	/******************************************/
 
 
-
-	function getOwnStartingWidth(username) {
-		var message = document.querySelector('div[data-username="' + username + '"]');
-		var features = message.querySelector('span.features');
-		var user = message.querySelector('a.user');
-		var colon = message.querySelector('span.ctrl');
-		var width = features.getBoundingClientRect().width + user.getBoundingClientRect().width + colon.getBoundingClientRect().width;
-		return width;
+	function getOwnStartingLeft(username) {
+		const left = $(`div.msg-chat.msg-user.msg-own[data-username="${username}"] > span.text`)
+			.position()
+			.left;
+		return left;
 	}
 
 	function getRecentMessageStartingLeft() {
-		var chat = document.querySelector('div#chat-win-main > div.chat-lines.nano-content');
-		var lastMessage = chat.children[chat.children.length-1];
-		var emote = lastMessage.querySelector('span.text > div.emote');
-		console.log(emote);
-		if(!emote) {
+		const lastMessageEmotes = $('div#chat-win-main > div.chat-lines.nano-content')
+			.children(':last')
+			.find('span.text > div.emote');
+		if(lastMessageEmotes.length === 0) {
 			console.warn('No Emote in last message.');
 			return false;
 		}
-		var width = emote.getBoundingClientRect().left - WIDTHS.space + (emote.getBoundingClientRect().width/2-WIDTHS.nathanTiny2/2);
+		const emote = $(lastMessageEmotes[0]);
+		var width = emote.position().left 				// Get emote left
+			- WIDTHS.space 								// Subtract space between _ and emote	// TODO: This should be moved to aligning function, if no underscores then no space is required
+			+ (emote.width()/2 - WIDTHS.nathanTiny2/2);	// Center emotes						// TODO: Add emote specific adjustment lookup table
 		return width;
 	}
 
 	function findDifferenceInRecentMessage() {
-		var diff = getRecentMessageStartingLeft() - config.initialLeft;
+		var diff = getRecentMessageStartingLeft() - config.initialLeft;							// TODO: Check if continuing message, and use alternative shorter left
 		return diff;
 	}
 
@@ -167,15 +175,17 @@
 		return message;
 	}
 
+
 	/******************************************/
 
-	function injectEmoteBackButton(emote) {
+
+	function injectToolbarButtons(emote) {
 		let html = '';
 		let css = '<style>';
 		
 		// nathanTiny2
 		html += `
-		<a id="chat-nathanTiny2-btn" class="chat-tool-btn" title="___ nathanTiny2" onclick="sendChatMessage(getEmoteBodyComboString('nathanTiny2'))">
+		<a id="chat-nathanTiny2-btn" class="chat-tool-btn" title="___ nathanTiny2">
 			<i class="voiture-btn-icon emote nathanTiny2"></i>
 		</a>`;
 
@@ -215,14 +225,20 @@
 		
 		css += '</style>';
 		
-		document.querySelector('#chat-tools-wrap > .chat-tools-group:first-child').insertAdjacentHTML('beforeend', html);
-		document.head.insertAdjacentHTML('beforeend', css);
+		$('#chat-tools-wrap > .chat-tools-group:first-child').append(html);
+		$('head').append(css);
+
+		// add event listeners
+		$('#chat-nathanTiny2-btn').click(e => getEmoteBodyComboString('nathanTiny2'));
+		
 	}
+
 
 	/******************************************/
 
+
 	function main() {
-		injectEmoteBackButton(config.defaultEmote);
+		injectToolbarButtons(config.defaultEmote);
 		setInterval(observeChatMentions, chatPollingDelay)
 	}
 
