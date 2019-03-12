@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -54,7 +54,7 @@
 	var lastMessageTime = new Date('1/1/2000');
 
 	function emoteBack(emote) {
-		const { mentionedBy, emoted } = getLastEmotedMessage();
+		const { mentionedBy, emote: emoted } = getLastEmotedMessage();
 		$('#chat-emote-back-btn > .emote.voiture-btn-icon')
 			.removeClass()
 			.addClass('emote voiture-btn-icon');
@@ -92,8 +92,8 @@
 	}
 	function sendChatMessage(message) {
 		const chatBox = $('#chat-input-control');
-		chatBox.text(message);
-		simulateEnterKeyPress(chatBox[0]);
+		chatBox.val(message);
+		// simulateEnterKeyPress(chatBox[0]);
 	}
 	function simulateEnterKeyPress(elem) {
 		elem.dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
@@ -143,7 +143,7 @@
 	}
 
 	function findDifferenceInRecentMessage() {
-		var diff = getRecentMessageStartingLeft() - config.initialLeft;							// TODO: Check if continuing message, and use alternative shorter left
+		var diff = getRecentMessageStartingLeft() - config.messageStartingLeft;							// TODO: Check if continuing message, and use alternative shorter left
 		return diff;
 	}
 
@@ -229,7 +229,7 @@
 		$('head').append(css);
 
 		// add event listeners
-		$('#chat-nathanTiny2-btn').click(e => getEmoteBodyComboString('nathanTiny2'));
+		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteBodyComboString('nathanTiny2')));
 		
 	}
 
