@@ -15,11 +15,27 @@
 (function() {
     'use strict';
 
-		
-	////////////////////////
 
-	var defaultEmote = 'Wowee';	// default emote
-	var user = 'Voiture';		// YOUR username
+	/******************************************/
+
+	// Load Config Settings
+	const config = {
+		username: null,
+		defaultEmote: 'Wowee',
+		messageStartingLeft: 83.72917175292969,
+		messageStartingLeftNewLine: 19,
+	};
+
+	const WIDTHS = {
+		"_": (19/3),
+		'.': 3,
+		nathanTiny2: 28,
+		space: 4,
+	};
+
+		
+	/******************************************/
+
 	var chatPollingDelay = 2000;	// milliseconds
 
 	var currentEmote = null;
@@ -29,7 +45,7 @@
 	function emoteBack(emote) {
 		const { mentionedBy, emoted } = getLastEmotedMessage();
 		document.querySelector('#chat-emote-back-btn > .emote.voiture-btn-icon').className = 'emote voiture-btn-icon';
-		if(emoted && mentionedBy && mentionedBy !== user) {	
+		if(emoted && mentionedBy && mentionedBy !== config.username) {	
 			const emoteMessage = buildResponse(mentionedBy, emoted);
 			sendChatMessage(emoteMessage);
 		}
@@ -45,7 +61,7 @@
 				while(nextSibling && !emoted) {
 					if(nextSibling.classList.contains('emote')) {
 						mentionedBy = nextSibling.parentElement.parentElement.querySelector('a.user').innerText;
-						if(mentionedBy !== user) {
+						if(mentionedBy !== config.username) {
 							emoted = nextSibling.className.replace('emote', '').trim();
 							messageTime = new Date(nextSibling.parentElement.parentElement.querySelector('time.time').title.replace(/([0-9]{1,2})(st|rd|th)/, '$1'));
 							break;
@@ -92,15 +108,9 @@
 	}
 
 
-	///////////////////
+	/******************************************/
 
-	var initialLeft = 83.72917175292969;
-	const WIDTHS = {
-		"_": (19/3),
-		'.': 3,
-		nathanTiny2: 28,
-		space: 4,
-	};
+
 
 	function getOwnStartingWidth(username) {
 		var message = document.querySelector('div[data-username="' + username + '"]');
@@ -125,7 +135,7 @@
 	}
 
 	function findDifferenceInRecentMessage() {
-		var diff = getRecentMessageStartingLeft() - initialLeft;
+		var diff = getRecentMessageStartingLeft() - config.initialLeft;
 		return diff;
 	}
 
@@ -157,7 +167,7 @@
 		return message;
 	}
 
-	///////////////////
+	/******************************************/
 
 	function injectEmoteBackButton(emote) {
 		let html = '';
@@ -209,9 +219,11 @@
 		document.head.insertAdjacentHTML('beforeend', css);
 	}
 
+	/******************************************/
+
 	function main() {
-	injectEmoteBackButton(defaultEmote);
-	setInterval(observeChatMentions, chatPollingDelay)
+		injectEmoteBackButton(config.defaultEmote);
+		setInterval(observeChatMentions, chatPollingDelay)
 	}
 
 	main();
