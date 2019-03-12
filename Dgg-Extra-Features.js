@@ -8,7 +8,7 @@
 // @include      /https:\/\/www\.destiny\.gg\/bigscreen.*/
 // @grant        none
 // @require      https://code.jquery.com/jquery-3.3.1.min.js
-// @update       https://raw.githubusercontent.com/Voiture-0/Userscripts/master/Dgg
+// @update       https://raw.githubusercontent.com/Voiture-0/Userscripts/master/Dgg-Extra-Features.js
 // ==/UserScript==
 
 
