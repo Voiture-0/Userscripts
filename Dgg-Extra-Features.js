@@ -109,7 +109,7 @@
 			
 			$('#chat-emote-back-btn')
 				.attr('title', mentionedBy + ' ' + emote)
-				.click(emoteBack(emote))
+				.click(e => emoteBack(emote))
 				.children(':first')
 					.removeClass()
 					.addClass(`voiture-btn-icon emote ${emote}`);
