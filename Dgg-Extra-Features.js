@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -12,43 +12,9 @@
 // ==/UserScript==
 
 
-(function() {
+(() => {
 	'use strict';
 
-	/******************************************/
-	/* Utility Functions **********************/
-	/******************************************/
-	
-	// Get N-th parent element
-	jQuery.fn.getParent = function(num) {
-		let last = this[0];
-		for (let i = 0; i < num; i++) {
-			last = last.parentNode;
-		}
-		return jQuery(last);
-	};
-
-	// Send chat message
-	function sendChatMessage(message) {
-		const chatBox = $('#chat-input-control');
-		chatBox.val(message);
-		if (config.autoSendMessages) {
-			simulateEnterKeyPress(chatBox);
-		}
-	}
-
-	function simulateEnterKeyPress(elem) {
-		elem[0].dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
-	}
-	
-	function messageMentionsUsername(message, username) {
-		const mentions = message
-			.data('mentioned');
-		return mentions !== undefined 
-			&& mentions
-				.split(' ')
-				.includes(config.username);
-	}
 
 	/******************************************/
 	/* Constants & Global Variables ***********/
@@ -90,6 +56,48 @@
 		'CUX': -1,
 		'ResidentSleeper': 7,
 	};
+
+
+	/******************************************/
+	/* Utility Functions **********************/
+	/******************************************/
+	
+	// Get N-th parent element
+	jQuery.fn.getParent = function(num) {
+		let last = this[0];
+		for (let i = 0; i < num; i++) {
+			last = last.parentNode;
+		}
+		return jQuery(last);
+	};
+
+	// Send chat message
+	function sendChatMessage(message, forceSend = false) {
+		const chatBox = $('#chat-input-control');
+		chatBox.val(message);
+		if (config.autoSendMessages || forceSend) {
+			simulateEnterKeyPress(chatBox);
+		}
+	}
+
+	// Triggers an enter key press on an element
+	function simulateEnterKeyPress(elem) {
+		elem[0].dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
+	}
+	
+	// Checks if a user is mentioned in a message
+	function messageMentionsUsername(message, username) {
+		const mentions = message
+			.data('mentioned');
+		return mentions !== undefined 
+			&& mentions
+				.split(' ')
+				.includes(username.toLowerCase());
+	}
+
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
 	
 	
 	/******************************************/
@@ -117,7 +125,6 @@
 			sendChatMessage(emoteMessage);
 		}
 	}
-
 
 	function observeChatForEmoteBack() {
 		var observeFunction = function(mutations) {
@@ -162,8 +169,10 @@
 			}
 		};
 
+		// Create observer
 		const observer = new MutationObserver(observeFunction);
 		const chat = $('#chat-win-main .chat-lines')[0];
+		// Observe chat
 		observer.observe(chat, { attributes: true, childList: true, characterData: true });
 	}
 
@@ -174,7 +183,26 @@
 
 
 	function getOwnStartingLeft(username) {
-		const left = $(`div.msg-chat.msg-user.msg-own[data-username='${username}'] > span.text`)
+		let exampleMessage = $(`div.msg-chat.msg-user.msg-own:not(.msg-continue)[data-username='${username.toLowerCase()}'] > span.text`);
+		if (exampleMessage.length === 0) {
+			// If there is no message to measure, send a message to measure
+			// Send message
+			if (['Voiture', 'AFrenchCar'].includes(config.username)) {
+				sendChatMessage('YEE Wowee', true);
+			} else {
+				sendChatMessage('Voiture you are a really cool chatter btw :)', true);	// PepeLaugh
+			}
+
+			// Get example message
+			exampleMessage = $(`div.msg-chat.msg-user.msg-own:not(.msg-continue)[data-username='${username.toLowerCase()}'] > span.text`);
+
+			if (exampleMessage.length === 0) {
+				const error = 'Unable to measure, please tell Voiture about this';
+				alert(error);
+				throw error;
+			}
+		}
+		const left = exampleMessage
 			.position()
 			.left;
 		return left;
@@ -197,12 +225,14 @@
 	}
 
 	function findDifferenceInRecentMessage(emote) {
-		const diff = getRecentMessageStartingLeft(emote) - config.messageStartingLeft;	// TODO: Check if continuing message, and use alternative shorter left
+		const continuingMessage = ($('div#chat-win-main .msg-chat:last').data('username') === config.username.toLowerCase());
+		const startingLeft = (continuingMessage ? config.messageStartingLeftNewLine : config.messageStartingLeft);
+		const diff = getRecentMessageStartingLeft(emote) - startingLeft;
 		return diff;
 	}
 
 	function getNumberOfCharactersToAlign(character, halfCharacter, emote) {
-		let diff = findDifferenceInRecentMessage();
+		let diff = findDifferenceInRecentMessage(emote);
 		console.log('diff = ' + diff);
 		if (diff >= 0) {
 			if (diff >= 0.4*WIDTHS[Character]) {
@@ -271,16 +301,15 @@
 				opacity: 0;
 				transition-duration: 200ms; 
 				transition-property: transform, opacity;
-				transition-timing-function: cubic-bezier(0.4, 0.1, 0.2, 1);
 			}
 			.chat-menu.right {
-				transform: translateX(100%);
+				transform: translateX(200px);
 			}
 			.chat-menu.left {
-				transform: translateX(-100%);
+				transform: translateX(-200px);
 			}
 			.chat-menu.active {
-				transform: translateX(0%);
+				transform: translateX(0);
 				opacity: 1;
 				transition-duration: 100ms; 
 				transition-property: transform, opacity;
@@ -335,6 +364,7 @@
 
 	function injectOptions() {
 		let html = '<h4>D.GG Extra Features</h4>';
+		let css = '<style>';
 
 		// Auto-message
 		html += `
@@ -345,13 +375,42 @@
 			</label>
 		</div>`;
 
+		// Measure message starting left
+		html += `
+		<div class="form-group row">
+			<label title="Automatically send messages or preview message in textbox">Message starting left</label>
+				<div class="row">
+				<button id="voiture-options-starting-left-calculate" class="btn btn-dark">Calculate</button>
+					<input id="voiture-options-starting-left" class="form-control" value="${config.messageStartingLeft}" readonly>
+				</div>
+			</label>
+		</div>`;
+
+		css += `
+		button.btn-dark {
+			color: #DEDEDE;
+			background: #030303;
+			padding: 0.3em 0.5em;
+			margin-top: -2px;
+			border: none;
+		}`;
+
+		css += '</style>';
+
 		$('#chat-settings-form')
 			.append(html);
+		$('head').append(css);
 
 		// add event listeners
 		$('#voiture-options-auto-message').change(e => toggleAutoSendMessages(e.target.checked));
+		$('#voiture-options-starting-left-calculate').click(saveMessageStartingLeft);
 	}
 
+	function saveMessageStartingLeft() {
+		config.startingLeft = getOwnStartingLeft(config.username);
+		$('#voiture-options-starting-left').val(config.startingLeft);
+		saveConfig();
+	}
 
 	/******************************************/
 	/* Config Handling ************************/
