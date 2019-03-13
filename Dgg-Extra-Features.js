@@ -239,13 +239,6 @@
 
 	function toggleAutoSendMessages(value) {
 		config.autoSendMessages = value;
-		if(value) {
-			$('#voiture-auto-send-message-toggle:not(:checked), #voiture-options-auto-message:not(:checked)')
-				.prop('checked', value);
-		} else {
-			$('#voiture-auto-send-message-toggle:checked, #voiture-options-auto-message:checked')
-				.prop('checked', value);
-		}
 		saveConfig();
 	}
 
@@ -293,29 +286,6 @@
 				transition-property: transform, opacity;
 			}
 		`;
-		
-		// Auto-message toggle checkbox
-		html += `
-		<a id="chat-auto-message-btn" class="chat-tool-btn" title="Auto-message">
-			<input id="voiture-auto-send-message-toggle" type="checkbox" ${(config.autoSendMessages ? 'checked' : '')} />
-		</a>`;
-
-		css += `
-		#chat-auto-message-btn {
-			margin-right: -3px;
-		}
-		#voiture-auto-send-message-toggle {
-			width: 90%;
-			height: 100%;
-			margin-top: 3px;
-			opacity: 0.25;
-			transition: opacity 150ms;
-			cursor: pointer;
-			float: right;
-		}
-		#voiture-auto-send-message-toggle:hover {
-			opacity: 1;
-		}`;
 
 		// nathanTiny2
 		html += `
@@ -360,7 +330,6 @@
 		$('head').append(css);
 
 		// add event listeners
-		$('#voiture-auto-send-message-toggle').change(e => toggleAutoSendMessages(e.target.checked));
 		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteAlignedMessage('nathanTiny2')));
 		$('#chat-emote-back-btn').contextmenu(clearEmoteBackButton);
 	}
@@ -372,7 +341,7 @@
 		html += `
 		<div class="form-group checkbox">
 			<label title="Automatically send messages or preview message in textbox">
-				<input id="voiture-options-auto-message" type="checkbox">
+				<input id="voiture-options-auto-message" type="checkbox" ${config.autoSendMessages ? 'checked' : ''}>
 				Auto-message
 			</label>
 		</div>`;
