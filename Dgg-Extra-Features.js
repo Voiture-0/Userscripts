@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @version      1.2.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -301,6 +301,7 @@
 				opacity: 0;
 				transition-duration: 200ms; 
 				transition-property: transform, opacity;
+				pointer-events: none;
 			}
 			.chat-menu.right {
 				transform: translateX(200px);
@@ -313,6 +314,7 @@
 				opacity: 1;
 				transition-duration: 100ms; 
 				transition-property: transform, opacity;
+				pointer-events: unset;
 			}`;
 
 		// nathanTiny2
