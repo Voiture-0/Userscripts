@@ -266,26 +266,25 @@
 			.emote-scaling-wrapper {
 				transform: scale(0.8, 0.8);
 			}
-			.chat-menu:not(#chat-user-list) {
+			.chat-menu {
 				display: block;
 				opacity: 0;
 				transition-duration: 200ms; 
 				transition-property: transform, opacity;
 				transition-timing-function: cubic-bezier(0.4, 0.1, 0.2, 1);
 			}
-			.chat-menu.right:not(#chat-user-list) {
+			.chat-menu.right {
 				transform: translateX(100%);
 			}
 			.chat-menu.left {
 				transform: translateX(-100%);
 			}
-			.chat-menu.active:not(#chat-user-list) {
+			.chat-menu.active {
 				transform: translateX(0%);
 				opacity: 1;
 				transition-duration: 100ms; 
 				transition-property: transform, opacity;
-			}
-		`;
+			}`;
 
 		// nathanTiny2
 		html += `
@@ -390,6 +389,25 @@
 	/* Main Code To Run ***********************/
 	/******************************************/
 
+	
+	function fixUserListSearchAutofocus() {
+		// Disable user search
+		$('#chat-user-list-search > input')
+			.prop('disabled', true);
+		// Re-enable and focus search on click
+		$('#chat-user-list-search')
+			.on('click', function(e) { 
+				$(this)
+					.find('input')
+						.prop('disabled', false)
+						.focus(); 
+			});
+		// Re-disable user search on blur
+		$('#chat-user-list-search > input')
+			.on('blur', function(e) { 
+				$(this).prop('disabled', true); 
+			});
+	}
 
 	function main() {
 		loadConfig();
@@ -397,6 +415,10 @@
 		injectToolbarButtons();
 		injectOptions();
 		observeChatForEmoteBack();
+
+		// Disable autofocus of user list search (otherwise chat goes off screen when user list is open)
+		fixUserListSearchAutofocus();
+
 	}
 
 	main();
