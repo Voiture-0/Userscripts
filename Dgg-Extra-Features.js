@@ -16,57 +16,86 @@
 	'use strict';
 
 	/******************************************/
+	/* Utility Functions **********************/
+	/******************************************/
 	
+	// Get N-th parent element
 	jQuery.fn.getParent = function(num) {
-		var last = this[0];
-		for (var i = 0; i < num; i++) {
+		let last = this[0];
+		for (let i = 0; i < num; i++) {
 			last = last.parentNode;
 		}
 		return jQuery(last);
 	};
 
+	// Send chat message
+	function sendChatMessage(message) {
+		const chatBox = $('#chat-input-control');
+		chatBox.val(message);
+		if (config.autoSendMessages) {
+			simulateEnterKeyPress(chatBox);
+		}
+	}
+
+	function simulateEnterKeyPress(elem) {
+		elem[0].dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
+	}
+	
+	function messageMentionsUsername(message, username) {
+		const mentions = message
+			.data('mentioned');
+		return mentions !== undefined 
+			&& mentions
+				.split(' ')
+				.includes(config.username);
+	}
+
+	/******************************************/
+	/* Constants & Global Variables ***********/
 	/******************************************/
 
 	// Load Config Settings
 	const config = {
 		username: null,
-		defaultEmote: 'Wowee',
 		messageStartingLeft: 83.72917175292969,
 		messageStartingLeftNewLine: 19,
-		autoSendMessages: true,
+		autoSendMessages: false,
 	};
 
 	const WIDTHS = {
-		"_": (19/3),
-		'.': 3,
+		'_': 6.32,
+		'.': 3.69,
 		nathanTiny2: 28,
 		space: 4,
 	};
 
 	const emoteCenterOffsets = {
-		"gachiGASM": 5,
-		"Wowee": 3,
-		"BASEDWATM8": 10,
-		"SLEEPSTINY": -16,
-		"LeRuse": -1,
-		"UWOTM8": -8,
-		"SoDoge": -14,
-		"OhKrappa": 3,
-		"AngelThump": 2,
-		"BibleThump": 2,
-		"Klappa": -7,
-		"Kappa": 1,
-		"DuckerZ": 10,
-		"OverRustle": 4,
-		"SURPRISE": -3,
-		"LUL": -3,
-		"SOY": -8,
-		"CUX": -1,
-		"ResidentSleeper": 7,
+		'gachiGASM': 5,
+		'Wowee': 3,
+		'BASEDWATM8': 10,
+		'SLEEPSTINY': -16,
+		'LeRuse': -1,
+		'UWOTM8': -8,
+		'SoDoge': -14,
+		'OhKrappa': 3,
+		'AngelThump': 2,
+		'BibleThump': 2,
+		'Klappa': -7,
+		'Kappa': 1,
+		'DuckerZ': 10,
+		'OverRustle': 4,
+		'SURPRISE': -3,
+		'LUL': -3,
+		'SOY': -8,
+		'CUX': -1,
+		'ResidentSleeper': 7,
 	};
 	
 	
 	/******************************************/
+	/* Emote Back *****************************/
+	/******************************************/
+
 
 	function clearEmoteBackButton() {
 		// Remove click event
@@ -84,38 +113,74 @@
 
 		// send emote back at emoter
 		if(emote && user && user !== config.username) {	
-			const emoteMessage = buildResponse(user, emote);
+			const emoteMessage = user + ' ' + emote;
 			sendChatMessage(emoteMessage);
 		}
 	}
 
-	function buildResponse(mentionedBy, emoted) {
-		return mentionedBy + ' ' + emoted;
-	}
 
-	function sendChatMessage(message) {
-		const chatBox = $('#chat-input-control');
-		chatBox.val(message);
-		if (config.autoSendMessages) {
-			simulateEnterKeyPress(chatBox[0]);
-		}
-	}
-	function simulateEnterKeyPress(elem) {
-		elem.dispatchEvent(new KeyboardEvent('keypress', {'key': 'Enter', keyCode: 13}));
+	function observeChatForEmoteBack() {
+		var observeFunction = function(mutations) {
+			for (let i = mutations.length-1; i >= 0; --i) {
+				for(let j = mutations[i].addedNodes.length-1; j >= 0; --j) {
+					// Get new message
+					const message = $(mutations[i].addedNodes[j]);
+					
+					// Skip own messages
+					if (message.hasClass('msg-own')) continue;
+					// Skip non-mentions
+					if (!messageMentionsUsername(message, config.username)) continue; 
+
+					// Check if emoted at
+					const emote = message
+						.find(`.text .chat-user:contains('${config.username}') + .emote`);	// Only if the message us Username Emote (+), if want to get any emote after Username use '~' instead of '+'
+					// If we were emoted at
+					if(emote.length !== 0) {
+						// Get emoter
+						const mentionedBy = message
+							.find('a.user')
+							.text();
+						// Get emote
+						const emoteName = emote
+							.filter(':last')		// Maybe want to get first instead?
+							.attr('class')
+							.replace('emote', '')
+							.trim();
+						// Activate emote-back button
+						$('#chat-emote-back-btn')
+							.attr('title', `${mentionedBy} ${emoteName}`)
+							.off('click')
+							.click(e => emoteBack(mentionedBy, emoteName))
+							.find('.voiture-btn-icon')
+								.removeClass()
+								.addClass(`voiture-btn-icon emote ${emoteName}`);
+						
+						// Break out of loops
+						return;
+					}
+				}
+			}
+		};
+
+		const observer = new MutationObserver(observeFunction);
+		const chat = $('#chat-win-main .chat-lines')[0];
+		observer.observe(chat, { attributes: true, childList: true, characterData: true });
 	}
 
 
 	/******************************************/
+	/* nathanTiny2 Align Combo ****************/
+	/******************************************/
 
 
 	function getOwnStartingLeft(username) {
-		const left = $(`div.msg-chat.msg-user.msg-own[data-username="${username}"] > span.text`)
+		const left = $(`div.msg-chat.msg-user.msg-own[data-username='${username}'] > span.text`)
 			.position()
 			.left;
 		return left;
 	}
 
-	function getRecentMessageStartingLeft() {
+	function getRecentMessageStartingLeft(emote) {
 		const lastMessageEmotes = $('div#chat-win-main > div.chat-lines.nano-content')
 			.children(':last')
 			.find('span.text > div.emote');
@@ -123,49 +188,70 @@
 			console.warn('No Emote in last message.');
 			return false;
 		}
-		const emote = $(lastMessageEmotes[0]);
-		const emoteName = emote.attr('title');
-		var width = emote.position().left 				// Get emote left
-			- WIDTHS.space 								// Subtract space between _ and emote	// TODO: This should be moved to aligning function, if no underscores then no space is required
-			+ (emote.width()/2 - WIDTHS.nathanTiny2/2)	// Center emotes
-			+ (emoteCenterOffsets[emoteName] || 0);	// Emote specific adjustment
+		const emoteElem = $(lastMessageEmotes[0]);
+		const emoteName = emoteElem.attr('title');
+		const width = emoteElem.position().left 		// Get emote left
+			+ (emoteElem.width()/2 - WIDTHS[emote]/2)	// Center emotes
+			+ (emoteCenterOffsets[emoteName] || 0);		// Emote specific adjustment
 		return width;
 	}
 
-	function findDifferenceInRecentMessage() {
-		var diff = getRecentMessageStartingLeft() - config.messageStartingLeft;							// TODO: Check if continuing message, and use alternative shorter left
+	function findDifferenceInRecentMessage(emote) {
+		const diff = getRecentMessageStartingLeft(emote) - config.messageStartingLeft;	// TODO: Check if continuing message, and use alternative shorter left
 		return diff;
 	}
 
-	function getNumberOfCharactersToAlign(character, halfCharacter) {
-		var diff = findDifferenceInRecentMessage();
+	function getNumberOfCharactersToAlign(character, halfCharacter, emote) {
+		let diff = findDifferenceInRecentMessage();
 		console.log('diff = ' + diff);
-		if(diff >= 0) {
-			var numOfChars = diff / WIDTHS[character];
-			var adjustment = '';
-			if(numOfChars % 1 > 0.9) {
+		if (diff >= 0) {
+			if (diff >= 0.4*WIDTHS[Character]) {
+				diff -= WIDTHS.space;	// Subtract space between _ and emote
+			}
+			const numOfChars = diff / WIDTHS[character];
+			let adjustment = '';
+			if (numOfChars % 1 >= 0.85) {
 				adjustment = character;
-			} else if (numOfChars % 1 > 0.6) {
-				adjustment = halfCharacter.repeat(2);
-			} else if (numOfChars % 1 > 0.3) {
+			} else if (numOfChars % 1 >= 0.4) {
 				adjustment = halfCharacter;
 			}
+			console.log('numOfChars = ' + numOfChars);
 			return adjustment + character.repeat(Math.floor(numOfChars));
 		}
 	}
 
-	function getEmoteBodyComboString(emote) {
-		var spacerCharacter = '_';
-		var halfSpacer = '.';
+	function getEmoteAlignedMessage(emote) {
+		const spacerCharacter = '_';
+		const halfSpacer = '.';
 		
-		var message = getNumberOfCharactersToAlign(spacerCharacter, halfSpacer);
-		if(message === undefined) return '';
+		let message = getNumberOfCharactersToAlign(spacerCharacter, halfSpacer, emote);
+		if (message === undefined) return '';
 		message += ' ' + emote;
 		
 		return message;
 	}
 
+	
+	/******************************************/
+	/* Auto-Message Toggle ********************/
+	/******************************************/
 
+
+	function toggleAutoSendMessages(value) {
+		config.autoSendMessages = value;
+		if(value) {
+			$('#voiture-auto-send-message-toggle:not(:checked), #voiture-options-auto-message:not(:checked)')
+				.prop('checked', value);
+		} else {
+			$('#voiture-auto-send-message-toggle:checked, #voiture-options-auto-message:checked')
+				.prop('checked', value);
+		}
+		saveConfig();
+	}
+
+	
+	/******************************************/
+	/* GUI ************************************/
 	/******************************************/
 
 
@@ -175,6 +261,9 @@
 
 		// Adjust some styles
 		css += `
+			#chat {
+				overflow-x: hidden;
+			}
 			#chat-tools-wrap {
 				overflow: hidden;
 			}
@@ -183,6 +272,25 @@
 			}
 			.emote-scaling-wrapper {
 				transform: scale(0.8, 0.8);
+			}
+			.chat-menu:not(#chat-user-list) {
+				display: block;
+				opacity: 0;
+				transition-duration: 200ms; 
+				transition-property: transform, opacity;
+				transition-timing-function: cubic-bezier(0.4, 0.1, 0.2, 1);
+			}
+			.chat-menu.right:not(#chat-user-list) {
+				transform: translateX(100%);
+			}
+			.chat-menu.left {
+				transform: translateX(-100%);
+			}
+			.chat-menu.active:not(#chat-user-list) {
+				transform: translateX(0%);
+				opacity: 1;
+				transition-duration: 100ms; 
+				transition-property: transform, opacity;
 			}
 		`;
 		
@@ -253,23 +361,38 @@
 
 		// add event listeners
 		$('#voiture-auto-send-message-toggle').change(e => toggleAutoSendMessages(e.target.checked));
-		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteBodyComboString('nathanTiny2')));
+		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteAlignedMessage('nathanTiny2')));
 		$('#chat-emote-back-btn').contextmenu(clearEmoteBackButton);
-		
 	}
 
-	function toggleAutoSendMessages(value) {
-		config.autoSendMessages = value;
-		saveConfig();
+	function injectOptions() {
+		let html = '<h4>D.GG Extra Features</h4>';
+
+		// Auto-message
+		html += `
+		<div class="form-group checkbox">
+			<label title="Automatically send messages or preview message in textbox">
+				<input id="voiture-options-auto-message" type="checkbox">
+				Auto-message
+			</label>
+		</div>`;
+
+		$('#chat-settings-form')
+			.append(html);
+
+		// add event listeners
+		$('#voiture-options-auto-message').change(e => toggleAutoSendMessages(e.target.checked));
 	}
 
 
+	/******************************************/
+	/* Config Handling ************************/
 	/******************************************/
 
 
 	function loadConfig() {
 		const json = localStorage.getItem('voiture-dgg-extra-features');
-		let savedConfig = JSON.parse(json);
+		const savedConfig = JSON.parse(json);
 		Object.assign(config, savedConfig);
 
 		// Verify username matches config, if it is different set correct username and save config for next time
@@ -281,7 +404,7 @@
 				.replace('Write something ', '')
 				.replace('...', '')
 				.trim();
-			if(username !== config.username) {
+			if (username !== config.username) {
 				config.username = username;
 				saveConfig();
 			}
@@ -295,54 +418,19 @@
 
 
 	/******************************************/
+	/* Main Code To Run ***********************/
+	/******************************************/
 
 
 	function main() {
-		
 		loadConfig();
 
-		injectToolbarButtons(config.defaultEmote);
-		
-		var observeFunction = function(mutations) {
-			for (let i = mutations.length-1; i >= 0; --i) {
-				for(let j = mutations[i].addedNodes.length-1; j >= 0; --j) {
-					// Get new message
-					const message = $(mutations[i].addedNodes[j]);
-					// Check if emoted at
-					const emote = message
-						.find(`.text .chat-user:contains("${config.username}") + .emote`);	// Only if the message us Username Emote (+), if want to get any emote after Username use '~' instead of '+'
-					// If we were emoted at
-					if(emote.length !== 0) {
-						// Get emoter
-						const mentionedBy = message
-							.find('a.user')
-							.text();
-						// Get emote
-						const emoteName = emote
-							.filter(':last')		// Maybe want to get first instead?
-							.attr('class')
-							.replace('emote', '')
-							.trim();
-						// Activate emote-back button
-						$('#chat-emote-back-btn')
-							.attr('title', mentionedBy + ' ' + emoteName)
-							.click(e => emoteBack(mentionedBy, emoteName))
-							.find('.voiture-btn-icon')
-								.removeClass()
-								.addClass(`voiture-btn-icon emote ${emoteName}`);
-						
-						// Break out of loops
-						return;
-					}
-				}
-			}
-		};
-
-		const observer = new MutationObserver(observeFunction);
-		observer.observe($('#chat-win-main .chat-lines')[0], { attributes: true, childList: true, characterData: true });
-
+		injectToolbarButtons();
+		injectOptions();
+		observeChatForEmoteBack();
 	}
 
 	main();
+
 
 })();
