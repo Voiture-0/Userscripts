@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.1.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -389,7 +389,7 @@
 	/* Main Code To Run ***********************/
 	/******************************************/
 
-	
+
 	function fixUserListSearchAutofocus() {
 		// Disable user search
 		$('#chat-user-list-search > input')
