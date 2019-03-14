@@ -33,6 +33,7 @@
 		'.': 3.69,
 		nathanTiny2: 28,
 		space: 4,
+		'👢👢': 33,
 	};
 
 	const emoteCenterOffsets = {
@@ -235,10 +236,10 @@
 		let diff = findDifferenceInRecentMessage(emote);
 		console.log('diff = ' + diff);
 		if (diff >= 0) {
-			if (diff >= 0.4*WIDTHS[Character]) {
+			if (diff >= 0.4*WIDTHS[character]) {
 				diff -= WIDTHS.space;	// Subtract space between _ and emote
 			}
-			const numOfChars = diff / WIDTHS[character];
+			let numOfChars = diff / WIDTHS[character];
 			let adjustment = '';
 			if (numOfChars % 1 >= 0.85) {
 				adjustment = character;
@@ -246,6 +247,7 @@
 				adjustment = halfCharacter;
 			}
 			console.log('numOfChars = ' + numOfChars);
+			numOfChars = Math.floor(Math.max(0, numOfChars));
 			return adjustment + character.repeat(Math.floor(numOfChars));
 		}
 	}
@@ -300,6 +302,7 @@
 			}
 			.emote-scaling-wrapper {
 				transform: scale(0.8, 0.8);
+				white-space: nowrap;
 			}
 			.chat-menu {
 				display: block;
@@ -340,6 +343,27 @@
 		#chat-tools-wrap #chat-nathanTiny2-btn:hover .voiture-btn-icon {
 			opacity: 1;
 		}`;
+
+		// 👢👢
+		html += `
+		<a id="chat-👢👢-btn" class="chat-tool-btn" title="___ 👢👢">
+			
+				<i class="voiture-btn-icon">👢👢</i>
+			
+		</a>`;
+
+		css += `
+		#chat-tools-wrap #chat-👢👢-btn .voiture-btn-icon {
+			float: left;
+			opacity: 0.25;
+			transition: opacity 150ms;
+			margin-top: 2px;
+			font-style: unset;
+			white-space: nowrap;
+		}
+		#chat-tools-wrap #chat-👢👢-btn:hover .voiture-btn-icon {
+			opacity: 1;
+		}`;
 		
 		// Emote Back
 		html += `
@@ -366,6 +390,7 @@
 
 		// add event listeners
 		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteAlignedMessage('nathanTiny2')));
+		$('#chat-👢👢-btn').click(e => sendChatMessage(getEmoteAlignedMessage('👢👢')));
 		$('#chat-emote-back-btn').on('mouseup', e => { if (e.which === 2) clearEmoteBackButton(); });
 	}
 
