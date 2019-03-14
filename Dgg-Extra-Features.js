@@ -361,7 +361,7 @@
 
 		// add event listeners
 		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteAlignedMessage('nathanTiny2')));
-		$('#chat-emote-back-btn').contextmenu(clearEmoteBackButton);
+		$('#chat-emote-back-btn').on('mouseup', e => { if (e.which === 2) clearEmoteBackButton(); });
 	}
 
 	function injectOptions() {
