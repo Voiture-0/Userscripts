@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.5.0
+// @version      1.5.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -304,7 +304,6 @@
 			const autoSendMessage = (whichMouseButton === MIDDLE_CLICK);
 			const selectionStart = $('#chat-input-control')[0].selectionStart;
 			const selectionEnd = $('#chat-input-control')[0].selectionEnd;
-			console.log(selectionStart, selectionEnd);
 			const messageStart = $('#chat-input-control')
 				.val()
 				.substr(0, selectionStart);
@@ -313,6 +312,12 @@
 				.substr(selectionEnd);
 			const message = `${messageStart} ${emote} ${messageEnd}`;
 			setChatMessage(message, autoSendMessage);
+			if (!autoSendMessage) {
+				// Reset cursor position
+				const cursorPosition = (`${messageStart} ${emote} `).length;
+				$('#chat-input-control')[0].selectionStart = cursorPosition;
+				$('#chat-input-control')[0].selectionEnd = cursorPosition;
+			}
 		}
 	}
 
