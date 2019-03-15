@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.4.1
+// @version      1.5.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -26,6 +26,7 @@
 		messageStartingLeft: 83.72917175292969,
 		messageStartingLeftNewLine: 19,
 		autoSendMessages: false,
+		clickableEmotes: true,
 	};
 
 	const WIDTHS = {
@@ -58,6 +59,8 @@
 		'ResidentSleeper': 7,
 	};
 
+	const LEFT_CLICK = 1,
+		MIDDLE_CLICK = 2;
 
 	/******************************************/
 	/* Utility Functions **********************/
@@ -77,6 +80,15 @@
 		const chatBox = $('#chat-input-control');
 		chatBox.val(message);
 		if (config.autoSendMessages || forceSend) {
+			simulateEnterKeyPress(chatBox);
+		}
+	}
+
+	// Append chat message
+	function setChatMessage(message, forceSend = false) {
+		const chatBox = $('#chat-input-control');
+		chatBox.val(message);
+		if (forceSend) {
 			simulateEnterKeyPress(chatBox);
 		}
 	}
@@ -276,11 +288,50 @@
 
 	
 	/******************************************/
-	/* GUI ************************************/
+	/* Click Emotes ***************************/
 	/******************************************/
 
 
-	function injectToolbarButtons(emote) {
+	function emoteClick(event) {
+		const classes = event.target.classList;
+		if (config.clickableEmotes && classes.contains('emote')) {
+			event.preventDefault();
+			const whichMouseButton = event.which;	// 1=left click, 2=middle click
+			const emote = classes
+				.toString()
+				.replace('emote', '')
+				.trim();
+			const autoSendMessage = (whichMouseButton === MIDDLE_CLICK);
+			const selectionStart = $('#chat-input-control')[0].selectionStart;
+			const selectionEnd = $('#chat-input-control')[0].selectionEnd;
+			console.log(selectionStart, selectionEnd);
+			const messageStart = $('#chat-input-control')
+				.val()
+				.substr(0, selectionStart);
+			const messageEnd = $('#chat-input-control')
+				.val()
+				.substr(selectionEnd);
+			const message = `${messageStart} ${emote} ${messageEnd}`;
+			setChatMessage(message, autoSendMessage);
+		}
+	}
+
+	function toggleEmoteClicks(value) {
+		config.clickableEmotes = value;
+		saveConfig();
+	}
+
+
+	/******************************************/
+	/* GUI ************************************/
+	/******************************************/
+
+	function baseInjections() {
+		$('#chat-output-frame')
+			.on('mousedown', emoteClick);
+	}
+
+	function injectToolbarButtons() {
 		let html = '';
 		let css = '<style>';
 
@@ -395,7 +446,7 @@
 		// add event listeners
 		$('#chat-nathanTiny2-btn').click(e => sendChatMessage(getEmoteAlignedMessage('nathanTiny2')));
 		$('#chat-👢👢-btn').click(e => sendChatMessage(getEmoteAlignedMessage('👢👢')));
-		$('#chat-emote-back-btn').on('mouseup', e => { if (e.which === 2) clearEmoteBackButton(); });
+		$('#chat-emote-back-btn').on('mouseup', e => { if (e.which === MIDDLE_CLICK) clearEmoteBackButton(); });
 	}
 
 	function injectOptions() {
@@ -408,6 +459,15 @@
 			<label title="Automatically send messages or preview message in textbox">
 				<input id="voiture-options-auto-message" type="checkbox" ${config.autoSendMessages ? 'checked' : ''}>
 				Auto-message
+			</label>
+		</div>`;
+
+		// Emote click
+		html += `
+		<div class="form-group checkbox">
+			<label title="Clicking emotes in chat puts emote in your message">
+				<input id="voiture-options-emote-click" type="checkbox" ${config.clickableEmotes ? 'checked' : ''}>
+				Emote Click
 			</label>
 		</div>`;
 
@@ -439,6 +499,7 @@
 
 		// add event listeners
 		$('#voiture-options-auto-message').change(e => toggleAutoSendMessages(e.target.checked));
+		$('#voiture-options-emote-click').change(e => toggleEmoteClicks(e.target.checked));
 		$('#voiture-options-starting-left-calculate').click(saveMessageStartingLeft);
 	}
 
@@ -506,7 +567,8 @@
 
 	function main() {
 		loadConfig();
-
+		
+		baseInjections();
 		injectToolbarButtons();
 		injectOptions();
 		observeChatForEmoteBack();
