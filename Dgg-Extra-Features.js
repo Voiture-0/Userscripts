@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.6.0
+// @version      1.7.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -67,6 +67,8 @@
 
     const LEFT_CLICK = 1,
         MIDDLE_CLICK = 2;
+
+    let mentionsWindow = null;
 
     /******************************************/
     /* Utility Functions **********************/
@@ -429,7 +431,8 @@
     }
 
     function injectToolbarButtons() {
-        let html = '';
+        let htmlLeft = '';
+        let htmlRight = '';
         let css = '<style>';
 
         // Adjust some styles
@@ -478,7 +481,7 @@
 			}`;
 
         // nathanTiny2
-        html += `
+        htmlLeft += `
 		<a id="chat-nathanTiny2-btn" class="chat-tool-btn" title="___ nathanTiny2">
 			<div class="emote-scaling-wrapper">	
 				<i class="voiture-btn-icon emote nathanTiny2"></i>
@@ -497,7 +500,7 @@
 		}`;
 
         // 👢👢
-        html += `
+        htmlLeft += `
 		<a id="chat-👢👢-btn" class="chat-tool-btn" title="___ 👢👢">
 			
 				<i class="voiture-btn-icon">👢👢</i>
@@ -518,7 +521,7 @@
 		}`;
 
         // Emote Back
-        html += `
+        htmlLeft += `
 		<a id="chat-emote-back-btn" class="chat-tool-btn">
 			<div class="emote-scaling-wrapper">
 				<i class="voiture-btn-icon emote"></i>
@@ -533,11 +536,23 @@
 		}
 		#chat-tools-wrap #chat-emote-back-btn:hover .voiture-btn-icon {
 			opacity: 1;
-		}`;
+        }`;
+
+        // Mentions
+        htmlRight += `
+        <a id="chat-mentions-btn" class="chat-tool-btn" title="Open mentions window" target="_blank" rel="noreferrer noopener" href="https://polecat.me/mentions">
+            @
+        </a>`;
+        css += `
+        #chat-tools-wrap #chat-mentions-btn {
+            font-weight: bold;
+            text-align: center;
+        }`;
 
         css += '</style>';
 
-        $('#chat-tools-wrap > .chat-tools-group:first-child').append(html);
+        $('#chat-tools-wrap > .chat-tools-group:first-child').append(htmlLeft);
+        $('#chat-tools-wrap > .chat-tools-group:last-child').prepend(htmlRight);
         $('head').append(css);
 
         // add event listeners
@@ -549,6 +564,17 @@
         );
         $('#chat-emote-back-btn').on('mouseup', e => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
+        });
+        $('#chat-mentions-btn').click(e => {
+            e.preventDefault();
+            if (mentionsWindow === null || mentionsWindow.closed) {
+                mentionsWindow = window.open(
+                    e.target.href,
+                    '',
+                    'location,width=770,height=500',
+                );
+            }
+            mentionsWindow.focus();
         });
     }
 
