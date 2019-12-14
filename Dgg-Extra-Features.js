@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.7.0
+// @version      1.8.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -69,6 +69,7 @@
         MIDDLE_CLICK = 2;
 
     let mentionsWindow = null;
+    let chatHidden = false;
 
     /******************************************/
     /* Utility Functions **********************/
@@ -423,6 +424,28 @@
     }
 
     /******************************************/
+    /* Hide Chat ******************************/
+    /******************************************/
+
+    function toggleHideChat(value) {
+        if (value !== undefined) {
+            chatHidden = value;
+        } else {
+            chatHidden = !chatHidden;
+        }
+
+        if (chatHidden) {
+            $('#chat-output-frame').css('visibility', 'hidden');
+            $('#chat-hide-btn > span').text('o');
+            $('#chat-hide-btn').attr('title', 'Show chat');
+        } else {
+            $('#chat-output-frame').css('visibility', 'unset');
+            $('#chat-hide-btn > span').text('ø');
+            $('#chat-hide-btn').attr('title', 'Hide chat');
+        }
+    }
+
+    /******************************************/
     /* GUI ************************************/
     /******************************************/
 
@@ -541,12 +564,40 @@
         // Mentions
         htmlRight += `
         <a id="chat-mentions-btn" class="chat-tool-btn" title="Open mentions window" target="_blank" rel="noreferrer noopener" href="https://polecat.me/mentions">
-            @
+            <span class="voiture-btn-icon">@</span>
         </a>`;
         css += `
         #chat-tools-wrap #chat-mentions-btn {
             font-weight: bold;
             text-align: center;
+            color: white;
+            opacity: 0.25;
+            font-style: normal;
+            transition: opacity 150ms;
+        }
+        #chat-tools-wrap #chat-mentions-btn:hover {
+            opacity: 1;
+        }`;
+
+        // Hide Chat
+        htmlRight += `
+        <a id="chat-hide-btn" class="chat-tool-btn" title="Hide chat">
+            <span class="voiture-btn-icon">ø</span>
+        </a>`;
+        css += `
+        #chat-tools-wrap #chat-hide-btn {
+            text-align: center;
+            color: white;
+            opacity: 0.25;
+            font-style: normal;
+            transition: opacity 150ms;
+        }
+        #chat-tools-wrap #chat-hide-btn:hover {
+            opacity: 1;
+        }
+        #chat-tools-wrap #chat-hide-btn span {
+            font-size: 22px;
+            line-height: 20px;
         }`;
 
         css += '</style>';
@@ -575,6 +626,10 @@
                 );
             }
             mentionsWindow.focus();
+        });
+        $('#chat-hide-btn').click(e => {
+            e.preventDefault();
+            toggleHideChat();
         });
     }
 
