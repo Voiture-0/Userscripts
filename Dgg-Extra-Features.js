@@ -26,6 +26,7 @@
         autoSendMessages: false,
         clickableEmotes: true,
         convertEmbedLinks: true,
+        showVerticalComboButtons: false,
     };
 
     const WIDTHS = {
@@ -361,6 +362,20 @@
         return message;
     }
 
+    function showVerticalComboButtons(value) {
+        if(value !== undefined) {
+            config.showVerticalComboButtons = value;
+            saveConfig();
+        }
+        if (config.showVerticalComboButtons) {
+            $('#chat-nathanTiny2-btn').removeClass('hidden');
+            $('#chat-👢👢-btn').removeClass('hidden');
+        } else {
+            $('#chat-nathanTiny2-btn').addClass('hidden');
+            $('#chat-👢👢-btn').addClass('hidden');
+        }
+    }
+
     /******************************************/
     /* Auto-Message Toggle ********************/
     /******************************************/
@@ -522,7 +537,10 @@
 				transition-duration: 100ms; 
 				transition-property: transform, opacity;
 				pointer-events: unset;
-			}
+            }
+            .hidden {
+                display: none !important;
+            }
 			#chat-tools-wrap .chat-tool-btn {
 				width: unset;
 				min-width: 2.25em;
@@ -546,7 +564,7 @@
 
         // nathanTiny2
         htmlLeft += `
-		<a id="chat-nathanTiny2-btn" class="chat-tool-btn" title="___ nathanTiny2">
+		<a id="chat-nathanTiny2-btn" class="chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ nathanTiny2">
 			<div class="emote-scaling-wrapper">	
 				<i class="voiture-btn-icon emote nathanTiny2_OG"></i>
 			</div>
@@ -554,7 +572,7 @@
 
         // 👢👢
         htmlLeft += `
-		<a id="chat-👢👢-btn" class="chat-tool-btn" title="___ 👢👢">
+		<a id="chat-👢👢-btn" class="chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ 👢👢">
             <i class="voiture-btn-icon">👢👢</i>
 		</a>`;
 
@@ -663,6 +681,17 @@
 			</label>
 		</div>`;
 
+        // Show vertical combo buttons
+        html += `
+		<div class="form-group checkbox">
+			<label title="show/hide the buttons for the nathanTiny2 and 👢👢 combos">
+				<input id="voiture-options-show-vertical-combo-buttons" name="voiture-options-show-vertical-combo-buttons" type="checkbox" ${
+                    config.showVerticalComboButtons ? 'checked' : ''
+                }>
+				Show Vertical Combo Buttons
+			</label>
+		</div>`;
+
         // Measure message starting left
         html += `
 		<div class="form-group row">
@@ -697,6 +726,9 @@
         );
         $('#voiture-options-convert-embed-links').change((e) =>
             toggleConvertEmbedLinks(e.target.checked),
+        );
+        $('#voiture-options-show-vertical-combo-buttons').change((e) =>
+            showVerticalComboButtons(e.target.checked),
         );
         $('#voiture-options-starting-left-calculate').click(
             saveMessageStartingLeft,
