@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.9.0
+// @version      1.9.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -122,12 +122,32 @@
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // shuffles the characters in a string
     function shuffleString(str) {
         if (!str) return str;
         return str
             .split('')
             .sort(() => 0.5 - Math.random())
             .join('');
+    }
+
+    // paste a string at the cursor's position in the chat box
+    function addToChatBox(str, autoSendMessage) {
+        const selectionStart = $('#chat-input-control')[0].selectionStart;
+        const selectionEnd = $('#chat-input-control')[0].selectionEnd;
+        const messageStart = $('#chat-input-control')
+            .val()
+            .substr(0, selectionStart);
+        const messageEnd = $('#chat-input-control').val().substr(selectionEnd);
+        const message = `${messageStart} ${str} ${messageEnd}`;
+        setChatMessage(message, autoSendMessage);
+        if (!autoSendMessage) {
+            // Reset cursor position
+            $('#chat-input-control')[0].focus();
+            const cursorPosition = `${messageStart} ${str} `.length;
+            $('#chat-input-control')[0].selectionStart = cursorPosition;
+            $('#chat-input-control')[0].selectionEnd = cursorPosition;
+        }
     }
 
     /******************************************/
@@ -357,22 +377,7 @@
             const whichMouseButton = event.which; // 1=left click, 2=middle click
             const emote = classes.toString().replace('emote', '').trim();
             const autoSendMessage = whichMouseButton === MIDDLE_CLICK;
-            const selectionStart = $('#chat-input-control')[0].selectionStart;
-            const selectionEnd = $('#chat-input-control')[0].selectionEnd;
-            const messageStart = $('#chat-input-control')
-                .val()
-                .substr(0, selectionStart);
-            const messageEnd = $('#chat-input-control')
-                .val()
-                .substr(selectionEnd);
-            const message = `${messageStart} ${emote} ${messageEnd}`;
-            setChatMessage(message, autoSendMessage);
-            if (!autoSendMessage) {
-                // Reset cursor position
-                const cursorPosition = `${messageStart} ${emote} `.length;
-                $('#chat-input-control')[0].selectionStart = cursorPosition;
-                $('#chat-input-control')[0].selectionEnd = cursorPosition;
-            }
+            addToChatBox(emote, autoSendMessage);
         }
     }
 
@@ -457,6 +462,7 @@
         if (Math.random() > 0.5) {
             message += shuffleString('gobl');
         }
+        message = ' ' + message + ' '; // Add extra whitespace just in case
         return message;
     }
 
@@ -560,9 +566,9 @@
 
         // 🦃 goblgobl
         htmlLeft += `
-		<a id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
+		<span id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
             <i class="voiture-btn-icon">🦃</i>
-		</a>`;
+		</span>`;
 
         css += `
 		#chat-tools-wrap #chat-gobl-btn .voiture-btn-icon {
@@ -646,11 +652,7 @@
             sendChatMessage(getEmoteAlignedMessage('👢👢')),
         );
         $('#chat-gobl-btn').click((e) =>
-            $('#chat-input-control').val(
-                ($('#chat-input-control').val() || '') +
-                    ' ' +
-                    generateGoblMessage(),
-            ),
+            addToChatBox(generateGoblMessage(), false),
         );
         $('#chat-emote-back-btn').on('mouseup', (e) => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
