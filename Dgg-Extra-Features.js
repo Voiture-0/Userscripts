@@ -122,6 +122,14 @@
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    function shuffleString(str) {
+        if (!str) return str;
+        return str
+            .split('')
+            .sort(() => 0.5 - Math.random())
+            .join('');
+    }
+
     /******************************************/
     /* Emote Back *****************************/
     /******************************************/
@@ -441,6 +449,18 @@
     }
 
     /******************************************/
+    /* 🦃 goblgobl ****************************/
+    /******************************************/
+
+    function generateGoblMessage() {
+        let message = '🦃 gobl' + shuffleString('gobl');
+        if (Math.random() > 0.5) {
+            message += shuffleString('gobl');
+        }
+        return message;
+    }
+
+    /******************************************/
     /* GUI ************************************/
     /******************************************/
 
@@ -536,7 +556,24 @@
 		}
 		#chat-tools-wrap #chat-👢👢-btn:hover .voiture-btn-icon {
 			opacity: 1;
-		}`;
+        }`;
+
+        // 🦃 goblgobl
+        htmlLeft += `
+		<a id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
+            <i class="voiture-btn-icon">🦃</i>
+		</a>`;
+
+        css += `
+		#chat-tools-wrap #chat-gobl-btn .voiture-btn-icon {
+            font-style: normal;
+			float: left;
+			opacity: 0.25;
+            transition: opacity 150ms;
+		}
+		#chat-tools-wrap #chat-gobl-btn:hover .voiture-btn-icon {
+			opacity: 1;
+        }`;
 
         // Emote Back
         htmlLeft += `
@@ -607,6 +644,13 @@
         );
         $('#chat-👢👢-btn').click((e) =>
             sendChatMessage(getEmoteAlignedMessage('👢👢')),
+        );
+        $('#chat-gobl-btn').click((e) =>
+            $('#chat-input-control').val(
+                ($('#chat-input-control').val() || '') +
+                    ' ' +
+                    generateGoblMessage(),
+            ),
         );
         $('#chat-emote-back-btn').on('mouseup', (e) => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
