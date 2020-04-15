@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.9.5
+// @version      1.10.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -68,6 +68,11 @@
             convertedLink: 'https://www.youtube.com/watch?v=',
             unconvertedLink: 'https://www.destiny.gg/embed/chat#youtube/',
         },
+    };
+
+    const emoteBackLog = {
+        history: [],
+        current: -1,
     };
 
     const LEFT_CLICK = 1,
@@ -166,6 +171,9 @@
         $('#chat-emote-back-btn .emote.voiture-btn-icon')
             .removeClass()
             .addClass('emote voiture-btn-icon');
+        
+        // reset emote back log index
+        emoteBackLog.current = -1;
     }
 
     function emoteBack(user, emote) {
@@ -178,6 +186,37 @@
         }
     }
 
+    function setEmoteBackButton(emoteMention) {
+        $('#chat-emote-back-btn')
+            .attr('title', `${emoteMention.mentionedBy} ${emoteMention.emoteName}`)
+            .off('click')
+            .click((e) => emoteBack(emoteMention.mentionedBy, emoteMention.emoteName))
+            .find('.voiture-btn-icon')
+            .removeClass()
+            .addClass(`voiture-btn-icon emote ${emoteMention.emoteName}`);
+    }
+
+    function saveEmoteMention(mentionedBy, emoteName) {
+        const emoteMention = { mentionedBy, emoteName };
+        emoteBackLog.history.unshift(emoteMention);
+        if(emoteBackLog.current !== 0) {
+            emoteBackLog.current++;
+        } else {
+            setEmoteBackButton(emoteMention);
+        }
+    }
+
+    function scrollEmoteMentions(direction) {
+        if(emoteBackLog.history.length <= 1) return;
+
+        var newCurrent = emoteBackLog.current + direction;
+        if(newCurrent < 0) newCurrent = 0;
+        if(newCurrent > emoteBackLog.history.length - 1) newCurrent = emoteBackLog.history.length - 1;
+        emoteBackLog.current = newCurrent;
+
+        setEmoteBackButton(emoteBackLog.history[emoteBackLog.current]);
+    }
+
     /******************************************/
     /* Chat Observer **************************/
     /******************************************/
@@ -185,8 +224,8 @@
     // Look for messages where we have been emoted at
     function observeChat() {
         var emotedAtObserveFunction = function (mutations) {
-            for (let i = mutations.length - 1; i >= 0; --i) {
-                for (let j = mutations[i].addedNodes.length - 1; j >= 0; --j) {
+            for (let i = 0; i < mutations.length; i++) {
+                for (let j = 0; j < mutations[i].addedNodes.length; j++) {
                     // Get new message
                     const message = $(mutations[i].addedNodes[j]);
 
@@ -210,17 +249,10 @@
                             .attr('class')
                             .replace('emote', '')
                             .trim();
-                        // Activate emote-back button
-                        $('#chat-emote-back-btn')
-                            .attr('title', `${mentionedBy} ${emoteName}`)
-                            .off('click')
-                            .click((e) => emoteBack(mentionedBy, emoteName))
-                            .find('.voiture-btn-icon')
-                            .removeClass()
-                            .addClass(`voiture-btn-icon emote ${emoteName}`);
-
-                        // Break out of loops
-                        return;
+                            
+                        // save mention
+                        saveEmoteMention(mentionedBy, emoteName);
+                        console.log('found', mentionedBy, emoteName);
                     }
                 }
             }
@@ -626,6 +658,9 @@
         $('#chat-gobl-btn').click((e) =>
             addToChatBox(generateGoblMessage(), false),
         );
+        $('#chat-emote-back-btn').on('wheel', (e) => {
+            scrollEmoteMentions(-1*Math.sign(e.originalEvent.deltaY));
+        });
         $('#chat-emote-back-btn').on('mouseup', (e) => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
         });
