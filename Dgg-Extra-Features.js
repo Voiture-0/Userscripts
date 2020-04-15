@@ -258,7 +258,6 @@
                             
                         // save mention
                         saveEmoteMention(mentionedBy, emoteName);
-                        console.log('found', mentionedBy, emoteName);
                     }
                 }
             }
