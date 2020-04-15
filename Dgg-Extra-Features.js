@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.9.4
+// @version      1.9.5
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -394,9 +394,11 @@
         if (config.clickableEmotes && classes.contains('emote')) {
             event.preventDefault();
             const whichMouseButton = event.which; // 1=left click, 2=middle click
-            const emote = classes.toString().replace('emote', '').trim();
-            const autoSendMessage = whichMouseButton === MIDDLE_CLICK;
-            addToChatBox(emote, autoSendMessage);
+            if(whichMouseButton === LEFT_CLICK || whichMouseButton === MIDDLE_CLICK) {
+                const emote = classes.toString().replace('emote', '').trim();
+                const autoSendMessage = whichMouseButton === MIDDLE_CLICK;
+                addToChatBox(emote, autoSendMessage);
+            }
         }
     }
 
