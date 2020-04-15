@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.0
+// @version      1.10.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -160,6 +160,12 @@
         }
     }
 
+    // Case Insensitive contains jQuery selector
+    jQuery.expr[':'].icontains = function(a, i, m) {
+        return jQuery(a).text().toUpperCase()
+            .indexOf(m[3].toUpperCase()) >= 0;
+    };
+
     /******************************************/
     /* Emote Back *****************************/
     /******************************************/
@@ -237,7 +243,7 @@
 
                     // Check if emoted at
                     const emote = message.find(
-                        `.text .chat-user:contains('${config.username}') + .emote`,
+                        `.text .chat-user:icontains('${config.username}') + .emote`,    // This is supposed to be case insensitive, but seems to not work sometimes hmmm TODO: this
                     ); // Only if the message us Username Emote (+), if want to get any emote after Username use '~' instead of '+'
                     // If we were emoted at
                     if (emote.length !== 0) {
