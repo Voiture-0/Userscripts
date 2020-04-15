@@ -31,7 +31,7 @@
     const WIDTHS = {
         _: 6.32,
         '.': 3.69,
-        nathanTiny2: 28,
+        nathanTiny2_OG: 28,
         space: 4,
         '👢👢': 33,
     };
@@ -76,7 +76,7 @@
     /******************************************/
 
     // Get N-th parent element
-    jQuery.fn.getParent = function(num) {
+    jQuery.fn.getParent = function (num) {
         let last = this[0];
         for (let i = 0; i < num; i++) {
             last = last.parentNode;
@@ -119,7 +119,7 @@
     }
 
     function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /******************************************/
@@ -128,9 +128,7 @@
 
     function clearEmoteBackButton() {
         // Remove click event
-        $('#chat-emote-back-btn')
-            .off('click')
-            .attr('title', '');
+        $('#chat-emote-back-btn').off('click').attr('title', '');
         // Remove classes to hide it
         $('#chat-emote-back-btn .emote.voiture-btn-icon')
             .removeClass()
@@ -153,7 +151,7 @@
 
     // Look for messages where we have been emoted at
     function observeChat() {
-        var emotedAtObserveFunction = function(mutations) {
+        var emotedAtObserveFunction = function (mutations) {
             for (let i = mutations.length - 1; i >= 0; --i) {
                 for (let j = mutations[i].addedNodes.length - 1; j >= 0; --j) {
                     // Get new message
@@ -183,7 +181,7 @@
                         $('#chat-emote-back-btn')
                             .attr('title', `${mentionedBy} ${emoteName}`)
                             .off('click')
-                            .click(e => emoteBack(mentionedBy, emoteName))
+                            .click((e) => emoteBack(mentionedBy, emoteName))
                             .find('.voiture-btn-icon')
                             .removeClass()
                             .addClass(`voiture-btn-icon emote ${emoteName}`);
@@ -196,7 +194,7 @@
         };
 
         // Look at chat for any embed links (ex: #twitch/destiny)
-        var convertLinksObserveFunction = function(mutations) {
+        var convertLinksObserveFunction = function (mutations) {
             if (config.convertEmbedLinks) {
                 for (let mutation of mutations) {
                     for (let message of mutation.addedNodes) {
@@ -349,10 +347,7 @@
         if (config.clickableEmotes && classes.contains('emote')) {
             event.preventDefault();
             const whichMouseButton = event.which; // 1=left click, 2=middle click
-            const emote = classes
-                .toString()
-                .replace('emote', '')
-                .trim();
+            const emote = classes.toString().replace('emote', '').trim();
             const autoSendMessage = whichMouseButton === MIDDLE_CLICK;
             const selectionStart = $('#chat-input-control')[0].selectionStart;
             const selectionEnd = $('#chat-input-control')[0].selectionEnd;
@@ -411,7 +406,7 @@
         if (valueChanged) {
             $('#chat-win-main .chat-lines')
                 .find('a.externallink.bookmarklink')
-                .each(function(i, link) {
+                .each(function (i, link) {
                     if (config.convertEmbedLinks) {
                         convertEmbedLinkToExternalLink(link);
                     } else {
@@ -507,7 +502,7 @@
         htmlLeft += `
 		<a id="chat-nathanTiny2-btn" class="chat-tool-btn" title="___ nathanTiny2">
 			<div class="emote-scaling-wrapper">	
-				<i class="voiture-btn-icon emote nathanTiny2"></i>
+				<i class="voiture-btn-icon emote nathanTiny2_OG"></i>
 			</div>
 		</a>`;
 
@@ -607,16 +602,16 @@
         $('head').append(css);
 
         // add event listeners
-        $('#chat-nathanTiny2-btn').click(e =>
-            sendChatMessage(getEmoteAlignedMessage('nathanTiny2')),
+        $('#chat-nathanTiny2-btn').click((e) =>
+            sendChatMessage(getEmoteAlignedMessage('nathanTiny2_OG')),
         );
-        $('#chat-👢👢-btn').click(e =>
+        $('#chat-👢👢-btn').click((e) =>
             sendChatMessage(getEmoteAlignedMessage('👢👢')),
         );
-        $('#chat-emote-back-btn').on('mouseup', e => {
+        $('#chat-emote-back-btn').on('mouseup', (e) => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
         });
-        $('#chat-mentions-btn').click(e => {
+        $('#chat-mentions-btn').click((e) => {
             e.preventDefault();
             if (mentionsWindow === null || mentionsWindow.closed) {
                 mentionsWindow = window.open(
@@ -627,7 +622,7 @@
             }
             mentionsWindow.focus();
         });
-        $('#chat-hide-btn').click(e => {
+        $('#chat-hide-btn').click((e) => {
             e.preventDefault();
             toggleHideChat();
         });
@@ -696,13 +691,13 @@
         $('head').append(css);
 
         // add event listeners
-        $('#voiture-options-auto-message').change(e =>
+        $('#voiture-options-auto-message').change((e) =>
             toggleAutoSendMessages(e.target.checked),
         );
-        $('#voiture-options-emote-click').change(e =>
+        $('#voiture-options-emote-click').change((e) =>
             toggleEmoteClicks(e.target.checked),
         );
-        $('#voiture-options-convert-embed-links').change(e =>
+        $('#voiture-options-convert-embed-links').change((e) =>
             toggleConvertEmbedLinks(e.target.checked),
         );
         $('#voiture-options-starting-left-calculate').click(
@@ -754,14 +749,11 @@
         // Disable user search
         $('#chat-user-list-search > input').prop('disabled', true);
         // Re-enable and focus search on click
-        $('#chat-user-list-search').on('click', function(e) {
-            $(this)
-                .find('input')
-                .prop('disabled', false)
-                .focus();
+        $('#chat-user-list-search').on('click', function (e) {
+            $(this).find('input').prop('disabled', false).focus();
         });
         // Re-disable user search on blur
-        $('#chat-user-list-search > input').on('blur', function(e) {
+        $('#chat-user-list-search > input').on('blur', function (e) {
             $(this).prop('disabled', true);
         });
     }
