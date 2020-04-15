@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.1
+// @version      1.10.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -660,9 +660,13 @@
         $('#chat-👢👢-btn').click((e) =>
             sendChatMessage(getEmoteAlignedMessage('👢👢')),
         );
-        $('#chat-gobl-btn').click((e) =>
-            addToChatBox(generateGoblMessage(), false),
-        );
+        $('#chat-gobl-btn').on('mouseup', (e) => {
+            if(e.which === LEFT_CLICK || e.which === MIDDLE_CLICK)
+            {
+                const autoSend = (e.which === MIDDLE_CLICK);
+                addToChatBox(generateGoblMessage(), autoSend);
+            }
+        });
         $('#chat-emote-back-btn').on('wheel', (e) => {
             scrollEmoteMentions(-1*Math.sign(e.originalEvent.deltaY));
         });
