@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.9.2
+// @version      1.9.3
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -526,7 +526,23 @@
 			#chat-tools-wrap .chat-tool-btn {
 				width: unset;
 				min-width: 2.25em;
-			}`;
+            }
+            #chat-tools-wrap .voiture-btn-icon {
+                float: left;
+                opacity: 0.25;
+                transition: opacity 150ms;
+                font-style: normal;
+                white-space: nowrap;
+                text-align: center;
+                color: white;
+                font-weight: bold;
+            }
+            #chat-tools-wrap .chat-tools-group:first-child .voiture-btn-icon {
+                margin-top: 2px;
+            }
+            #chat-tools-wrap .voiture-btn-icon:hover {
+                opacity: 1;
+            }`;
 
         // nathanTiny2
         htmlLeft += `
@@ -536,54 +552,17 @@
 			</div>
 		</a>`;
 
-        css += `
-		#chat-tools-wrap #chat-nathanTiny2-btn .voiture-btn-icon {
-			float: left;
-			opacity: 0.25;
-			transition: opacity 150ms;
-			margin-top: 2px;
-		}
-		#chat-tools-wrap #chat-nathanTiny2-btn:hover .voiture-btn-icon {
-			opacity: 1;
-		}`;
-
         // 👢👢
         htmlLeft += `
 		<a id="chat-👢👢-btn" class="chat-tool-btn" title="___ 👢👢">
-			
-				<i class="voiture-btn-icon">👢👢</i>
-			
+            <i class="voiture-btn-icon">👢👢</i>
 		</a>`;
-
-        css += `
-		#chat-tools-wrap #chat-👢👢-btn .voiture-btn-icon {
-			float: left;
-			opacity: 0.25;
-			transition: opacity 150ms;
-			margin-top: 2px;
-			font-style: unset;
-			white-space: nowrap;
-		}
-		#chat-tools-wrap #chat-👢👢-btn:hover .voiture-btn-icon {
-			opacity: 1;
-        }`;
 
         // 🦃 goblgobl
         htmlLeft += `
-		<span id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
+		<a id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
             <i class="voiture-btn-icon">🦃</i>
-		</span>`;
-
-        css += `
-		#chat-tools-wrap #chat-gobl-btn .voiture-btn-icon {
-            font-style: normal;
-			float: left;
-			opacity: 0.25;
-            transition: opacity 150ms;
-		}
-		#chat-tools-wrap #chat-gobl-btn:hover .voiture-btn-icon {
-			opacity: 1;
-        }`;
+		</a>`;
 
         // Emote Back
         htmlLeft += `
@@ -593,33 +572,11 @@
 			</div>
 		</a>`;
 
-        css += `
-		#chat-tools-wrap #chat-emote-back-btn .voiture-btn-icon {
-			float: left;
-			opacity: 0.25;
-			transition: opacity 150ms;
-		}
-		#chat-tools-wrap #chat-emote-back-btn:hover .voiture-btn-icon {
-			opacity: 1;
-        }`;
-
         // Mentions
         htmlRight += `
         <a id="chat-mentions-btn" class="chat-tool-btn" title="Open mentions window" target="_blank" rel="noreferrer noopener" href="https://polecat.me/mentions">
             <span class="voiture-btn-icon">@</span>
         </a>`;
-        css += `
-        #chat-tools-wrap #chat-mentions-btn {
-            font-weight: bold;
-            text-align: center;
-            color: white;
-            opacity: 0.25;
-            font-style: normal;
-            transition: opacity 150ms;
-        }
-        #chat-tools-wrap #chat-mentions-btn:hover {
-            opacity: 1;
-        }`;
 
         // Hide Chat
         htmlRight += `
@@ -627,19 +584,10 @@
             <span class="voiture-btn-icon">ø</span>
         </a>`;
         css += `
-        #chat-tools-wrap #chat-hide-btn {
-            text-align: center;
-            color: white;
-            opacity: 0.25;
-            font-style: normal;
-            transition: opacity 150ms;
-        }
-        #chat-tools-wrap #chat-hide-btn:hover {
-            opacity: 1;
-        }
-        #chat-tools-wrap #chat-hide-btn span {
+        #chat-tools-wrap #chat-hide-btn .voiture-btn-icon {
             font-size: 22px;
             line-height: 20px;
+            font-weight: normal;
         }`;
 
         css += '</style>';
