@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.2
+// @version      1.10.3
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -72,7 +72,7 @@
 
     const emoteBackLog = {
         history: [],
-        current: -1,
+        current: 0,
     };
 
     const LEFT_CLICK = 1,
@@ -193,19 +193,20 @@
     }
 
     function setEmoteBackButton(emoteMention) {
+        // console.log('setting', emoteMention);
         $('#chat-emote-back-btn')
             .attr('title', `${emoteMention.mentionedBy} ${emoteMention.emoteName}`)
             .off('click')
             .click((e) => emoteBack(emoteMention.mentionedBy, emoteMention.emoteName))
-            .find('.voiture-btn-icon')
-            .removeClass()
-            .addClass(`voiture-btn-icon emote ${emoteMention.emoteName}`);
+            .find('.emote-scaling-wrapper')
+            .html(`<i class="voiture-btn-icon emote ${emoteMention.emoteName}"></i>`);
     }
 
     function saveEmoteMention(mentionedBy, emoteName) {
         const emoteMention = { mentionedBy, emoteName };
         emoteBackLog.history.unshift(emoteMention);
-        if(emoteBackLog.current !== 0) {
+        // console.log('current', emoteBackLog.current);
+        if(emoteBackLog.current > 0) {
             emoteBackLog.current++;
         } else {
             setEmoteBackButton(emoteMention);
@@ -213,14 +214,18 @@
     }
 
     function scrollEmoteMentions(direction) {
-        if(emoteBackLog.history.length <= 1) return;
+        if(emoteBackLog.history.length === 0) return;
 
         var newCurrent = emoteBackLog.current + direction;
         if(newCurrent < 0) newCurrent = 0;
         if(newCurrent > emoteBackLog.history.length - 1) newCurrent = emoteBackLog.history.length - 1;
-        emoteBackLog.current = newCurrent;
+        
+        // console.log(emoteBackLog.current + ' --> ' + newCurrent, emoteBackLog.history);
 
-        setEmoteBackButton(emoteBackLog.history[emoteBackLog.current]);
+        if(emoteBackLog.current !== newCurrent) {
+            emoteBackLog.current = newCurrent;
+            setEmoteBackButton(emoteBackLog.history[emoteBackLog.current]);
+        }
     }
 
     /******************************************/
@@ -586,8 +591,6 @@
             }
             #chat-tools-wrap .voiture-btn-icon {
                 float: left;
-                opacity: 0.25;
-                transition: opacity 150ms;
                 font-style: normal;
                 white-space: nowrap;
                 text-align: center;
@@ -597,13 +600,17 @@
             #chat-tools-wrap .chat-tools-group:first-child .voiture-btn-icon {
                 margin-top: 2px;
             }
-            #chat-tools-wrap .voiture-btn-icon:hover {
+            #chat-tools-wrap .voiture-chat-tool-btn {
+                opacity: 0.25;
+                transition: opacity 150ms;
+            }
+            #chat-tools-wrap .voiture-chat-tool-btn:hover {
                 opacity: 1;
             }`;
 
         // nathanTiny2
         htmlLeft += `
-		<a id="chat-nathanTiny2-btn" class="chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ nathanTiny2">
+		<a id="chat-nathanTiny2-btn" class="chat-tool-btn voiture-chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ nathanTiny2">
 			<div class="emote-scaling-wrapper">	
 				<i class="voiture-btn-icon emote nathanTiny2_OG"></i>
 			</div>
@@ -611,19 +618,19 @@
 
         // 👢👢
         htmlLeft += `
-		<a id="chat-👢👢-btn" class="chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ 👢👢">
+		<a id="chat-👢👢-btn" class="chat-tool-btn voiture-chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ 👢👢">
             <i class="voiture-btn-icon">👢👢</i>
 		</a>`;
 
         // 🦃 goblgobl
         htmlLeft += `
-		<a id="chat-gobl-btn" class="chat-tool-btn" title="🦃 goblgobl">
+		<a id="chat-gobl-btn" class="chat-tool-btn voiture-chat-tool-btn" title="🦃 goblgobl">
             <i class="voiture-btn-icon">🦃</i>
 		</a>`;
 
         // Emote Back
         htmlLeft += `
-		<a id="chat-emote-back-btn" class="chat-tool-btn">
+		<a id="chat-emote-back-btn" class="chat-tool-btn voiture-chat-tool-btn">
 			<div class="emote-scaling-wrapper">
 				<i class="voiture-btn-icon emote"></i>
 			</div>
@@ -631,13 +638,13 @@
 
         // Mentions
         htmlRight += `
-        <a id="chat-mentions-btn" class="chat-tool-btn" title="Open mentions window" target="_blank" rel="noreferrer noopener" href="https://polecat.me/mentions">
+        <a id="chat-mentions-btn" class="chat-tool-btn voiture-chat-tool-btn" title="Open mentions window" target="_blank" rel="noreferrer noopener" href="https://polecat.me/mentions">
             <span class="voiture-btn-icon">@</span>
         </a>`;
 
         // Hide Chat
         htmlRight += `
-        <a id="chat-hide-btn" class="chat-tool-btn" title="Hide chat">
+        <a id="chat-hide-btn" class="chat-tool-btn voiture-chat-tool-btn" title="Hide chat">
             <span class="voiture-btn-icon">ø</span>
         </a>`;
         css += `
