@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.9.1
+// @version      1.9.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -62,6 +62,10 @@
         '#twitch': {
             convertedLink: 'https://www.twitch.tv/',
             unconvertedLink: 'https://www.destiny.gg/embed/chat#twitch/',
+        },
+        '#youtube': {
+            convertedLink: 'https://www.youtube.com/watch?v=',
+            unconvertedLink: 'https://www.destiny.gg/embed/chat#youtube/',
         },
     };
 
