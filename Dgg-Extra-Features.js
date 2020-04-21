@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.3
+// @version      1.10.4
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -135,10 +135,18 @@
     // shuffles the characters in a string
     function shuffleString(str) {
         if (!str) return str;
-        return str
-            .split('')
-            .sort(() => 0.5 - Math.random())
-            .join('');
+        // Fisher Yates shuffle algorithm
+        var a = str.split(''),
+            n = a.length;
+    
+        for(var i = n - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = a[i];
+            a[i] = a[j];
+            a[j] = tmp;
+        }
+        return a.join('');
+        
     }
 
     // paste a string at the cursor's position in the chat box
