@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.4
+// @version      1.10.5
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -530,8 +530,11 @@
 
     function generateGoblMessage() {
         let message = '🦃 gobl' + shuffleString('gobl');
-        if (Math.random() > 0.5) {
+        if (Math.random() < 0.5) {
             message += shuffleString('gobl');
+            if (Math.random() < 0.25) {
+                message += shuffleString('gobl');
+            }
         }
         message = ' ' + message + ' '; // Add extra whitespace just in case
         return message;
