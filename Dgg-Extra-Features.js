@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.10.5
+// @version      1.11.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -11,7 +11,7 @@
 // @update       https://raw.githubusercontent.com/Voiture-0/Userscripts/master/Dgg-Extra-Features.js
 // ==/UserScript==
 
-(() => {
+(async () => {
     'use strict';
 
     /******************************************/
@@ -80,6 +80,7 @@
 
     let mentionsWindow = null;
     let chatHidden = false;
+    let goblIcon = (await testIfEmoteExists('PepoTurkey') ? 'PepoTurkey' : '🦃');
 
     /******************************************/
     /* Utility Functions **********************/
@@ -174,6 +175,17 @@
             .indexOf(m[3].toUpperCase()) >= 0;
     };
 
+    async function testIfEmoteExists(emote) {
+        if(emote === undefined || emote === null || typeof emote !== 'string') return false; 
+        const emoteElement = document.createElement('div');
+        emoteElement.className = 'hidden emote ' + emote;
+        document.getElementById('chat-emote-list').append(emoteElement);
+        await sleep(200);
+        const emoteExists = (getComputedStyle(emoteElement).backgroundImage !== 'none');
+        emoteElement.remove();
+        return emoteExists;
+    }
+
     /******************************************/
     /* Emote Back *****************************/
     /******************************************/
@@ -195,13 +207,17 @@
 
         // send emote back at emoter
         if (emote && user && user !== config.username) {
-            const emoteMessage = user + ' ' + emote;
+            let emoteMessage = user + ' ';
+            if(emote === 'PepoTurkey') {
+                emoteMessage += generateGoblMessage();
+            } else {
+                emoteMessage += emote;
+            }
             sendChatMessage(emoteMessage);
         }
     }
 
     function setEmoteBackButton(emoteMention) {
-        // console.log('setting', emoteMention);
         $('#chat-emote-back-btn')
             .attr('title', `${emoteMention.mentionedBy} ${emoteMention.emoteName}`)
             .off('click')
@@ -213,7 +229,6 @@
     function saveEmoteMention(mentionedBy, emoteName) {
         const emoteMention = { mentionedBy, emoteName };
         emoteBackLog.history.unshift(emoteMention);
-        // console.log('current', emoteBackLog.current);
         if(emoteBackLog.current > 0) {
             emoteBackLog.current++;
         } else {
@@ -529,7 +544,7 @@
     /******************************************/
 
     function generateGoblMessage() {
-        let message = '🦃 gobl' + shuffleString('gobl');
+        let message = goblIcon + ' gobl' + shuffleString('gobl');
         if (Math.random() < 0.5) {
             message += shuffleString('gobl');
             if (Math.random() < 0.25) {
@@ -634,10 +649,19 @@
 		</a>`;
 
         // 🦃 goblgobl
-        htmlLeft += `
-		<a id="chat-gobl-btn" class="chat-tool-btn voiture-chat-tool-btn" title="🦃 goblgobl">
-            <i class="voiture-btn-icon">🦃</i>
-		</a>`;
+        if(goblIcon === '🦃') {
+            htmlLeft += `
+            <a id="chat-gobl-btn" class="chat-tool-btn voiture-chat-tool-btn" title="🦃 goblgobl">
+                <i class="voiture-btn-icon">🦃</i>
+            </a>`;
+        } else {
+            htmlLeft += `
+            <a id="chat-gobl-btn" class="chat-tool-btn voiture-chat-tool-btn" title="🦃 goblgobl">
+                <div class="emote-scaling-wrapper">
+                    <i class="voiture-btn-icon emote PepoTurkey"></i>
+                </div>
+            </a>`;
+        }
 
         // Emote Back
         htmlLeft += `
