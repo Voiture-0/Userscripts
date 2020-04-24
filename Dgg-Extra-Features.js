@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.11.0
+// @version      1.12.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -27,6 +27,7 @@
         clickableEmotes: true,
         convertEmbedLinks: true,
         showVerticalComboButtons: false,
+        theme: null
     };
 
     const WIDTHS = {
@@ -184,6 +185,275 @@
         const emoteExists = (getComputedStyle(emoteElement).backgroundImage !== 'none');
         emoteElement.remove();
         return emoteExists;
+    }
+    
+    /******************************************/
+    /* Utility Functions **********************/
+    /******************************************/
+
+    function addLightThemeStyle() {
+        const css = `
+        #chat.voiture-light-theme {
+            background: #f7f7f7;
+            color: #666;
+        }
+        
+        #chat.voiture-light-theme .msg-chat {
+            color: #464646;
+        }
+        
+        #chat.voiture-light-theme .msg-chat .user {
+            color: #232323;
+        }
+        
+        #chat.voiture-light-theme .msg-chat .green-text {
+            color: #588c1a;
+        }
+        
+        #chat.voiture-light-theme hr {
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #fff;
+        }
+        
+        #chat.voiture-light-theme.pref-taggedvisibility div.msg-tagged {
+            background-color: #dcdcdc;
+        }
+
+        #chat.voiture-light-theme #chat-input-control {
+            background: #eee;
+            border: 1px solid #ddd;
+            color: #464646;
+        }
+        #chat.voiture-light-theme #chat-input-control::placeholder {
+            color: #ddd;
+        }
+        
+        #chat.voiture-light-theme #chat-tools-wrap .btn-icon {
+            filter: brightness(.01);
+        }
+        
+        #chat.voiture-light-theme .msg-chat .externallink {
+            color: #2e75d0;
+        }
+        
+        #chat.voiture-light-theme .user.flair8 {
+            color: #c825be;
+        }
+        
+        #chat.voiture-light-theme .user.flair13,
+        #chat.voiture-light-theme .user.flair9 {
+            color: #5477ca;
+        }
+        
+        #chat.voiture-light-theme .user.flair11 {
+            color: #6d6d6d;
+        }
+        
+        #chat.voiture-light-theme .msg-own {
+            background-color: #eaeaea;
+        }
+        
+        #chat.voiture-light-theme .msg-highlight {
+            background-color: #cfe9ff!important;
+        }
+        
+        #chat.voiture-light-theme .user.flair3 {
+            color: #57aa36;
+        }
+        
+        #chat.voiture-light-theme #chat-auto-complete li {
+            color: #717171;
+            background: rgba(238, 238, 238, .85);
+        }
+        
+        #chat.voiture-light-theme .user.admin {
+            color: #bf4f4f;
+        }
+        
+        #chat.voiture-light-theme .chat-scroll-notify {
+            color: #7c7c7c;
+            background: #eee;
+        }
+        
+        #chat.voiture-light-theme .chat-combo .combo,
+        #chat.voiture-light-theme .chat-combo .count,
+        #chat.voiture-light-theme .chat-combo .hit,
+        #chat.voiture-light-theme .chat-combo .x {
+            text-shadow: -1px -1px 0 #444, 1px -1px 0 #444, -1px 1px 0 #444, 1px 1px 0 #444;
+        }
+        
+        #chat.voiture-light-theme .chat-combe .hit,
+        #chat.voiture-light-theme .chat-combo .combo {
+            color: #eee;
+        }
+        
+        #chat.voiture-light-theme .chat-combo .count,
+        #chat.voiture-light-theme .chat-combo .x {
+            color: #ddd;
+        }
+        
+        #chat.voiture-light-theme .msg-whisper {
+            background-color: #eaeaea;
+        }
+        
+        #chat.voiture-light-theme #chat-whisper-unread-indicator {
+            color: #423f40;
+        }
+        
+        #chat.voiture-light-theme .chat-menu .chat-menu-inner {
+            background-color: #ddd;
+        }
+        
+        #chat.voiture-light-theme #chat-whisper-users .unread-0 .user,
+        #chat.voiture-light-theme #chat-whisper-users .unread-0 .user:hover {
+            color: #666;
+        }
+        
+        #chat.voiture-light-theme .chat-menu .toolbar h5 {
+            color: #666;
+        }
+        
+        #chat.voiture-light-theme #chat-whisper-users .conversation .remove {
+            filter: invert(1);
+        }
+        
+        #chat.voiture-light-theme .chat-menu .toolbar {
+            border-bottom: 1px solid #ccc;
+        }
+        
+        #chat.voiture-light-theme .chat-menu .toolbar .chat-menu-close {
+            filter: invert(1);
+        }
+        
+        #chat.voiture-light-theme .chat-output:not(.chat-win-main) .msg-historical {
+            background-color: #eaeaea;
+            color: #212121;
+        }
+        
+        #chat.voiture-light-theme #chat-windows-select {
+            background: #ccc;
+        }
+        
+        #chat.voiture-light-theme #chat-windows-select .tab.active {
+            color: #212121;
+            background: #9d9d9d;
+        }
+        
+        #chat.voiture-light-theme #chat-windows-select .tab-close {
+            filter: invert(1);
+        }
+        
+        #chat.voiture-light-theme .user.flair17 {
+            color: #c4af00;
+        }
+        
+        #chat.voiture-light-theme #chat-auto-complete li.active {
+            color: #000;
+        }
+        
+        #chat.voiture-light-theme .emote.RaveDoge {
+            animation: RaveDoge-anim .5s infinite;
+        }
+        
+        @keyframes RaveDoge-anim {
+            0% {
+                filter: hue-rotate(0) invert(1) brightness(1.1);
+            }
+            100% {
+                filter: hue-rotate(360deg) invert(1) brightness(1.1);
+            }
+        }
+        
+        #chat.voiture-light-theme .nano>.nano-pane>.nano-slider {
+            background: #717171;
+        }
+        
+        #chat.voiture-light-theme .form-control {
+            color: #464646!important;
+            background: #fcfcfc!important;
+            border: 1px solid #b5b5b5!important;
+        }
+        
+        #chat.voiture-light-theme .emote.GameOfThrows {
+            filter: drop-shadow(1px 1px 0 #000);
+        }
+        
+        @keyframes DANKMEMES-anim {
+            0%,
+            100% {
+                -webkit-filter: hue-rotate(0);
+                filter: hue-rotate(0);
+            }
+            50% {
+                -webkit-filter: hue-rotate(360deg);
+                filter: hue-rotate(360deg);
+            }
+        }
+        
+        @keyframes DANKMEMES-anim-hover {
+            0%,
+            100% {
+                -webkit-filter: hue-rotate(0);
+                filter: hue-rotate(0);
+            }
+            50% {
+                -webkit-filter: hue-rotate(360deg);
+                filter: hue-rotate(360deg);
+            }
+        }
+        
+        #chat.voiture-light-theme .emote.CuckCrab {
+            filter: brightness(2.2) contrast(.9);
+        }
+        
+        #chat.voiture-light-theme .msg-broadcast {
+            text-shadow: 1px 1px 3px #404040;
+            background-color: #d9d9d9;
+            color: #fffd79!important;
+        }
+        
+        #chat.voiture-light-theme .user.flair12 {
+            color: #e38602;
+        }
+        
+        #chat.voiture-light-theme .user.flair1 {
+            color: #30bbab;
+        }
+        
+        #chat.voiture-light-theme .user.flair8 {
+            color: #d532cb;
+        }
+        #chat.voiture-light-theme button.btn-dark {
+            color: unset;
+            background: #fcfcfc;
+        }
+        #chat.voiture-light-theme #chat-tools-wrap .voiture-btn-icon {
+            color: black;
+        }
+        `;
+        const style = document.createElement("style");
+        style.type = "text/css";
+        style.appendChild(document.createTextNode(css));
+        document.head.appendChild(style);
+        changeTheme();
+    }
+
+    function changeTheme(theme) {
+        if (theme !== undefined) {
+            // Update config
+            config.theme = theme;
+            saveConfig();
+        }
+
+        // Remove all themes
+        $('#chat').removeClass('voiture-light-theme');
+
+        // Add selected theme class
+        switch(config.theme) {
+            case 'light':
+                $('#chat').addClass('voiture-light-theme');
+                break;
+        }
     }
 
     /******************************************/
@@ -629,6 +899,7 @@
             #chat-tools-wrap .voiture-chat-tool-btn {
                 opacity: 0.25;
                 transition: opacity 150ms;
+                color: white;
             }
             #chat-tools-wrap .voiture-chat-tool-btn:hover {
                 opacity: 1;
@@ -736,6 +1007,18 @@
         let html = '<h4>D.GG Extra Features</h4>';
         let css = '<style>';
 
+        // Theme
+        html += `
+		<div class="form-group checkbox">
+            <label title="Set chat theme (Credit to Igor for the light theme styles)" for="voiture-options-theme">
+                Theme
+            </label>
+            <select id="voiture-options-theme" name="voiture-options-theme" class="form-control">
+                <option value="dark" ${(config.theme !== 'light' ? 'selected' : '')}>Dark (Default)</option>
+                <option value="light" ${(config.theme === 'light' ? 'selected' : '')}>Light</option>
+            </select>
+		</div>`;
+
         // Auto-message
         html += `
 		<div class="form-group checkbox">
@@ -806,6 +1089,9 @@
         $('head').append(css);
 
         // add event listeners
+        $('#voiture-options-theme').change((e) =>
+            changeTheme(e.target.value),
+        );
         $('#voiture-options-auto-message').change((e) =>
             toggleAutoSendMessages(e.target.checked),
         );
@@ -883,6 +1169,7 @@
         injectToolbarButtons();
         injectOptions();
         observeChat();
+        addLightThemeStyle();
 
         // Disable autofocus of user list search (otherwise chat goes off screen when user list is open)
         fixUserListSearchAutofocus();
