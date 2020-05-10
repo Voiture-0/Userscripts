@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.12.0
+// @version      1.12.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -11,7 +11,7 @@
 // @update       https://raw.githubusercontent.com/Voiture-0/Userscripts/master/Dgg-Extra-Features.js
 // ==/UserScript==
 
-(async () => {
+(() => {
     'use strict';
 
     /******************************************/
@@ -81,7 +81,7 @@
 
     let mentionsWindow = null;
     let chatHidden = false;
-    let goblIcon = (await testIfEmoteExists('PepoTurkey') ? 'PepoTurkey' : '🦃');
+    let goblIcon = (testIfEmoteExists('PepoTurkey') ? 'PepoTurkey' : '🦃');
 
     /******************************************/
     /* Utility Functions **********************/
@@ -176,15 +176,16 @@
             .indexOf(m[3].toUpperCase()) >= 0;
     };
 
-    async function testIfEmoteExists(emote) {
-        if(emote === undefined || emote === null || typeof emote !== 'string') return false; 
-        const emoteElement = document.createElement('div');
-        emoteElement.className = 'hidden emote ' + emote;
-        document.getElementById('chat-emote-list').append(emoteElement);
-        await sleep(200);
-        const emoteExists = (getComputedStyle(emoteElement).backgroundImage !== 'none');
-        emoteElement.remove();
-        return emoteExists;
+    function testIfEmoteExists(emote) {
+        // if(emote === undefined || emote === null || typeof emote !== 'string') return false; 
+        // const emoteElement = document.createElement('div');
+        // emoteElement.className = 'hidden emote ' + emote;
+        // document.getElementById('chat-emote-list').append(emoteElement);
+        // await sleep(200);
+        // const emoteExists = (getComputedStyle(emoteElement).backgroundImage !== 'none');
+        // emoteElement.remove();
+        // return emoteExists;
+        return true;
     }
     
     /******************************************/
