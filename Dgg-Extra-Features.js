@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.12.2
+// @version      1.12.3
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -670,7 +670,7 @@
     function getEmoteAlignedMessage(emote) {
         const recentMessageEmoteDiff = measureRecentMessageDiffLeft(emote);
         const message = getNumberOfCharactersToAlign(recentMessageEmoteDiff);
-        if (message === undefined) return '';
+        if (message === undefined || recentMessageEmoteDiff > 300) return '';
         return message + ' ' + emote;
     }
 
