@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.12.1
+// @version      1.12.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -602,29 +602,22 @@
     /******************************************/
 
     function getOwnStartingLeft(username) {
-        let exampleMessage = $(
-            `div.msg-chat.msg-user.msg-own:not(.msg-continue)[data-username='${username.toLowerCase()}'] > span.text`,
-        );
+        const exampleMessageSelector = `div.msg-chat.msg-user.msg-own:not(.msg-continue)[data-username='${username.toLowerCase()}'] > span.text`;
+        let exampleMessage = $(exampleMessageSelector);
         if (exampleMessage.length === 0) {
             // If there is no message to measure, send a message to measure
             // Send message
             if (['Voiture', 'AFrenchCar'].includes(config.username)) {
                 sendChatMessage('YEE Wowee', true);
             } else {
-                sendChatMessage(
-                    'Voiture you are a really cool chatter btw :)',
-                    true,
-                ); // PepeLaugh
+                sendChatMessage('Voiture you are a really cool chatter btw :)', true); // PepeLaugh
             }
 
             // Get example message
-            exampleMessage = $(
-                `div.msg-chat.msg-user.msg-own:not(.msg-continue)[data-username='${username.toLowerCase()}'] > span.text`,
-            );
+            exampleMessage = $(exampleMessageSelector);
 
             if (exampleMessage.length === 0) {
-                const error =
-                    'Unable to measure, please tell Voiture about this';
+                const error = 'Unable to measure, please tell Voiture about this';
                 alert(error);
                 throw error;
             }
@@ -633,69 +626,52 @@
         return left;
     }
 
-    function getRecentMessageStartingLeft(emote) {
-        const lastMessageEmotes = $(
-            'div#chat-win-main > div.chat-lines.nano-content',
-        )
-            .children(':last')
-            .find('span.text > div.emote');
-        if (lastMessageEmotes.length === 0) {
-            console.warn('No Emote in last message.');
-            return false;
-        }
-        const emoteElem = $(lastMessageEmotes[0]);
-        const emoteName = emoteElem.attr('title');
-        const width =
-            emoteElem.position().left + // Get emote left
-            (emoteElem.width() / 2 - WIDTHS[emote] / 2) + // Center emotes
-            (emoteCenterOffsets[emoteName] || 0); // Emote specific adjustment
-        return width;
-    }
-
-    function findDifferenceInRecentMessage(emote) {
-        const continuingMessage =
-            $('div#chat-win-main .msg-chat:last').data('username') ===
-            config.username.toLowerCase();
-        const startingLeft = continuingMessage
+    function measureRecentMessageDiffLeft(emote) {
+        // Find own message's starting left position
+        const isContinuingMessage = ($('div#chat-win-main .msg-chat:last').data('username') === config.username.toLowerCase());
+        const ownMessageStartingLeft = isContinuingMessage
             ? config.messageStartingLeftNewLine
             : config.messageStartingLeft;
-        const diff = getRecentMessageStartingLeft(emote) - startingLeft;
-        return diff;
+            
+        // Find most recent message's emote starting left position
+        const lastMessageEmotes = $('div#chat-win-main > div.chat-lines.nano-content')
+            .children(':last')
+            .find('span.text > div.emote');
+        if (lastMessageEmotes.length === 0) return false;   // No emote to align to
+
+        const emoteElem = $(lastMessageEmotes[0]);
+        const emoteName = emoteElem.attr('title');
+        const recentMessageEmoteLeft = emoteElem.position().left    // Get emote left
+            + (emoteElem.width() / 2 - WIDTHS[emote] / 2)           // Center emotes
+            + (emoteCenterOffsets[emoteName] || 0);                 // Emote specific adjustment
+
+        // Return difference in positions
+        return recentMessageEmoteLeft - ownMessageStartingLeft;
     }
 
-    function getNumberOfCharactersToAlign(character, halfCharacter, emote) {
-        let diff = findDifferenceInRecentMessage(emote);
-        console.log('diff = ' + diff);
-        if (diff >= 0) {
-            if (diff >= 0.4 * WIDTHS[character]) {
-                diff -= WIDTHS.space; // Subtract space between _ and emote
+    function getNumberOfCharactersToAlign(recentMessageEmoteDiff) {
+        const underscore = '_', period = '.';   // Spacer characters
+        if (recentMessageEmoteDiff >= 0) {
+            if (recentMessageEmoteDiff >= 0.4 * WIDTHS[underscore]) {
+                recentMessageEmoteDiff -= WIDTHS.space; // Subtract space between _ and emote
             }
-            let numOfChars = diff / WIDTHS[character];
+            let numOfChars = recentMessageEmoteDiff / WIDTHS[underscore];
             let adjustment = '';
             if (numOfChars % 1 >= 0.85) {
-                adjustment = character;
+                adjustment = underscore;
             } else if (numOfChars % 1 >= 0.4) {
-                adjustment = halfCharacter;
+                adjustment = period;
             }
-            console.log('numOfChars = ' + numOfChars);
             numOfChars = Math.floor(Math.max(0, numOfChars));
-            return adjustment + character.repeat(Math.floor(numOfChars));
+            return adjustment + underscore.repeat(Math.floor(numOfChars));
         }
     }
 
     function getEmoteAlignedMessage(emote) {
-        const spacerCharacter = '_';
-        const halfSpacer = '.';
-
-        let message = getNumberOfCharactersToAlign(
-            spacerCharacter,
-            halfSpacer,
-            emote,
-        );
+        const recentMessageEmoteDiff = measureRecentMessageDiffLeft(emote);
+        const message = getNumberOfCharactersToAlign(recentMessageEmoteDiff);
         if (message === undefined) return '';
-        message += ' ' + emote;
-
-        return message;
+        return message + ' ' + emote;
     }
 
     function showVerticalComboButtons(value) {
@@ -968,12 +944,8 @@
         $('head').append(css);
 
         // add event listeners
-        $('#chat-nathanTiny2-btn').click((e) =>
-            sendChatMessage(getEmoteAlignedMessage('nathanTiny2_OG')),
-        );
-        $('#chat-👢👢-btn').click((e) =>
-            sendChatMessage(getEmoteAlignedMessage('👢👢')),
-        );
+        $('#chat-nathanTiny2-btn').click((e) => sendChatMessage(getEmoteAlignedMessage('nathanTiny2_OG')));
+        $('#chat-👢👢-btn').click((e) => sendChatMessage(getEmoteAlignedMessage('👢👢')));
         $('#chat-gobl-btn').on('mouseup', (e) => {
             if(e.which === LEFT_CLICK || e.which === MIDDLE_CLICK)
             {
@@ -981,9 +953,7 @@
                 addToChatBox(generateGoblMessage(), autoSend);
             }
         });
-        $('#chat-emote-back-btn').on('wheel', (e) => {
-            scrollEmoteMentions(-1*Math.sign(e.originalEvent.deltaY));
-        });
+        $('#chat-emote-back-btn').on('wheel', (e) => scrollEmoteMentions(-1*Math.sign(e.originalEvent.deltaY)));
         $('#chat-emote-back-btn').on('mouseup', (e) => {
             if (e.which === MIDDLE_CLICK) clearEmoteBackButton();
         });
