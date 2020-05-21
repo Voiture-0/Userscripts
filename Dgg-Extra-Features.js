@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.12.3
+// @version      1.12.4
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -62,13 +62,17 @@
 
     const embedLinks = {
         '#twitch': {
-            convertedLink: 'https://www.twitch.tv/',
-            unconvertedLink: 'https://www.destiny.gg/embed/chat#twitch/',
+            convertedLink: 'https://www.twitch.tv/'
         },
         '#youtube': {
-            convertedLink: 'https://www.youtube.com/watch?v=',
-            unconvertedLink: 'https://www.destiny.gg/embed/chat#youtube/',
+            convertedLink: 'https://www.youtube.com/watch?v='
         },
+        '#twitch-vod': {
+            convertedLink: 'https://www.twitch.tv/videos/'
+        },
+        '#twitch-clip': {
+            convertedLink: 'https://clips.twitch.tv/'
+        }
     };
 
     const emoteBackLog = {
@@ -728,6 +732,11 @@
         const linkParts = linkText.split('/');
         const linkKey = linkParts[0].toLowerCase();
         if (embedLinks[linkKey] !== undefined) {
+            // Save original href
+            console.info(link);
+            if (link.getAttribute('data-voiture-original-href') === null) {
+                link.setAttribute('data-voiture-original-href', link.href);
+            }
             const newUrl = embedLinks[linkKey].convertedLink;
             link.target = '_blank';
             link.href = newUrl + linkParts[1];
@@ -739,9 +748,9 @@
         const linkParts = linkText.split('/');
         const linkKey = linkParts[0].toLowerCase();
         if (embedLinks[linkKey] !== undefined) {
-            const newUrl = embedLinks[linkKey].unconvertedLink;
             link.target = '_top';
-            link.href = newUrl + linkParts[1];
+            console.info(link);
+            link.href = link.getAttribute('data-voiture-original-href');
         }
     }
 
