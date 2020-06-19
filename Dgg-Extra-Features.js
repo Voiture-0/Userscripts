@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.12.4
+// @version      1.13.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -27,7 +27,8 @@
         clickableEmotes: true,
         convertEmbedLinks: true,
         showVerticalComboButtons: false,
-        theme: null
+        theme: null,
+        hideDndFlairs: false
     };
 
     const WIDTHS = {
@@ -773,6 +774,17 @@
         saveConfig();
     }
 
+    function toggleHideDndFlairs(value) {
+        const valueChanged = config.hideDndFlairs !== value;
+        config.hideDndFlairs = value;
+
+        if (valueChanged) {
+            $('#chat-win-main').toggleClass('voiture-hide-dnd-flairs', config.hideDndFlairs)
+        }
+
+        saveConfig();
+    }
+
     /******************************************/
     /* Hide Chat ******************************/
     /******************************************/
@@ -889,7 +901,14 @@
             }
             #chat-tools-wrap .voiture-chat-tool-btn:hover {
                 opacity: 1;
-            }`;
+            }
+            #chat-win-main.voiture-hide-dnd-flairs .flair.flair22,
+            #chat-win-main.voiture-hide-dnd-flairs .flair.flair23,
+            #chat-win-main.voiture-hide-dnd-flairs .flair.flair24,
+            #chat-win-main.voiture-hide-dnd-flairs .flair.flair26 {
+                display: none;
+            }
+            `;
 
         // nathanTiny2
         htmlLeft += `
@@ -1032,6 +1051,17 @@
 			</label>
 		</div>`;
 
+        // Hide Dnd Flairs
+        html += `
+		<div class="form-group checkbox">
+			<label title="Only the DND Flairs will be hidden">
+				<input id="voiture-options-hide-dnd-flairs" name="voiture-options-hide-dnd-flairs" type="checkbox" ${
+                    config.hideDndFlairs ? 'checked' : ''
+                }>
+				Hide DND Flairs
+			</label>
+		</div>`;
+
         // Show vertical combo buttons
         html += `
 		<div class="form-group checkbox">
@@ -1080,6 +1110,9 @@
         );
         $('#voiture-options-convert-embed-links').change((e) =>
             toggleConvertEmbedLinks(e.target.checked),
+        );
+        $('#voiture-options-hide-dnd-flairs').change((e) =>
+            toggleHideDndFlairs(e.target.checked),
         );
         $('#voiture-options-show-vertical-combo-buttons').change((e) =>
             showVerticalComboButtons(e.target.checked),
