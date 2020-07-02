@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.13.1
+// @version      1.13.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -779,10 +779,9 @@
         config.hideDndFlairs = value;
 
         if (valueChanged) {
-            $('#chat-win-main').toggleClass('voiture-hide-dnd-flairs', config.hideDndFlairs)
+            $('#chat-win-main').toggleClass('voiture-hide-dnd-flairs', config.hideDndFlairs);
+			saveConfig();
         }
-
-        saveConfig();
     }
 
     /******************************************/
@@ -1136,6 +1135,10 @@
         const json = localStorage.getItem('voiture-dgg-extra-features');
         const savedConfig = JSON.parse(json);
         Object.assign(config, savedConfig);
+
+		if(config.hideDndFlairs) {
+			$('#chat-win-main').addClass('voiture-hide-dnd-flairs');
+		}
 
         // Verify username matches config, if it is different set correct username and save config for next time
         // Need to wait for it to load... sigh
