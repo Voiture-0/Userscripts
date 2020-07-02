@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.13.0
+// @version      1.13.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -36,7 +36,7 @@
         '.': 3.69,
         nathanTiny2_OG: 28,
         space: 4,
-        '👢👢': 33,
+        '👞👞': 40, // '👢👢': 33,
     };
 
     const emoteCenterOffsets = {
@@ -686,10 +686,10 @@
         }
         if (config.showVerticalComboButtons) {
             $('#chat-nathanTiny2-btn').removeClass('hidden');
-            $('#chat-👢👢-btn').removeClass('hidden');
+            $('#chat-👞👞-btn').removeClass('hidden');
         } else {
             $('#chat-nathanTiny2-btn').addClass('hidden');
-            $('#chat-👢👢-btn').addClass('hidden');
+            $('#chat-👞👞-btn').addClass('hidden');
         }
     }
 
@@ -918,10 +918,10 @@
 			</div>
 		</a>`;
 
-        // 👢👢
+        // 👞👞
         htmlLeft += `
-		<a id="chat-👢👢-btn" class="chat-tool-btn voiture-chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ 👢👢">
-            <i class="voiture-btn-icon">👢👢</i>
+		<a id="chat-👞👞-btn" class="chat-tool-btn voiture-chat-tool-btn ${config.showVerticalComboButtons ? '' : 'hidden'}" title="___ 👞👞">
+            <i class="voiture-btn-icon">👞👞</i>
 		</a>`;
 
         // 🦃 goblgobl
@@ -973,7 +973,7 @@
 
         // add event listeners
         $('#chat-nathanTiny2-btn').click((e) => sendChatMessage(getEmoteAlignedMessage('nathanTiny2_OG')));
-        $('#chat-👢👢-btn').click((e) => sendChatMessage(getEmoteAlignedMessage('👢👢')));
+        $('#chat-👞👞-btn').click((e) => sendChatMessage(getEmoteAlignedMessage('👞👞')));
         $('#chat-gobl-btn').on('mouseup', (e) => {
             if(e.which === LEFT_CLICK || e.which === MIDDLE_CLICK)
             {
@@ -1065,7 +1065,7 @@
         // Show vertical combo buttons
         html += `
 		<div class="form-group checkbox">
-			<label title="show/hide the buttons for the nathanTiny2 and 👢👢 combos">
+			<label title="show/hide the buttons for the nathanTiny2 and 👞👞 combos">
 				<input id="voiture-options-show-vertical-combo-buttons" name="voiture-options-show-vertical-combo-buttons" type="checkbox" ${
                     config.showVerticalComboButtons ? 'checked' : ''
                 }>
