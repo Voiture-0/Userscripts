@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.14.0
+// @version      1.14.1
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -867,7 +867,7 @@
 			//link.style = 'box-shadow: 0px 0px 5px 0px;border-radius: 10px;padding: 0px 5px;';
 			
 			link.href = fixedUrl;
-			link.innerText = fixedUrl;	
+			//link.innerText = fixedUrl;	
 		}
     }
 	
