@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.13.2
+// @version      1.14.0
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -519,7 +519,7 @@
         if(newCurrent < 0) newCurrent = 0;
         if(newCurrent > emoteBackLog.history.length - 1) newCurrent = emoteBackLog.history.length - 1;
         
-        // console.log(emoteBackLog.current + ' --> ' + newCurrent, emoteBackLog.history);
+        // console.debug(emoteBackLog.current + ' --> ' + newCurrent, emoteBackLog.history);
 
         if(emoteBackLog.current !== newCurrent) {
             emoteBackLog.current = newCurrent;
@@ -582,10 +582,28 @@
                 }
             }
         };
+		
+		// Look at chat for any twitter links to fix (remove ?s=21)
+        var convertTwitterLinksObserveFunction = function (mutations) {
+			const twitterRegex = /((http|https):\/\/)?((www|mobile)\.)?(twitter\.com\/)(.+)(\?s=\d+)?/;
+			for (let mutation of mutations) {
+				for (let message of mutation.addedNodes) {
+					let links = $(message).find(
+						'a.externallink',
+					);
+					for (let link of links) {
+						if(twitterRegex.test(link.href)) {
+							fixTwitterLinks(link);
+						}
+					}
+				}
+			}
+        };
 
         // Create observers
         const emotedAtObserver = new MutationObserver(emotedAtObserveFunction);
         const linkObserver = new MutationObserver(convertLinksObserveFunction);
+        const twitterLinkObserver = new MutationObserver(convertTwitterLinksObserveFunction);
 
         const chat = $('#chat-win-main .chat-lines')[0];
 
@@ -596,6 +614,11 @@
             characterData: true,
         });
         linkObserver.observe(chat, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+        });
+        twitterLinkObserver.observe(chat, {
             attributes: true,
             childList: true,
             characterData: true,
@@ -734,7 +757,6 @@
         const linkKey = linkParts[0].toLowerCase();
         if (embedLinks[linkKey] !== undefined) {
             // Save original href
-            console.info(link);
             if (link.getAttribute('data-voiture-original-href') === null) {
                 link.setAttribute('data-voiture-original-href', link.href);
             }
@@ -750,7 +772,6 @@
         const linkKey = linkParts[0].toLowerCase();
         if (embedLinks[linkKey] !== undefined) {
             link.target = '_top';
-            console.info(link);
             link.href = link.getAttribute('data-voiture-original-href');
         }
     }
@@ -822,6 +843,34 @@
         return message;
     }
 
+    /******************************************/
+    /* Fix Twitter Links **********************/
+    /******************************************/
+
+    function fixTwitterLinks(link) {
+		let fixedUrl = link.href;
+		let urlChanged = false;
+		const twitterMobileRegex = /((http|https):\/\/)?(mobile\.)(twitter\.com)/;
+		const twitterQueryRegex = /((http|https):\/\/)?((www|mobile)\.)?(twitter\.com\/)(.+)(\?s=\d+)/;
+		if (twitterMobileRegex.test(link.href)) {
+			fixedUrl = fixedUrl.replace('mobile.', '');
+			urlChanged = true;
+		}
+		if (twitterQueryRegex.test(link.href)) {
+			fixedUrl = link.href.split('?')[0];
+			urlChanged = true;
+		}
+		
+		if (urlChanged === true) {		
+			// DEBUG
+			//console.info(link, link.href + ' --> ' + fixedUrl);
+			//link.style = 'box-shadow: 0px 0px 5px 0px;border-radius: 10px;padding: 0px 5px;';
+			
+			link.href = fixedUrl;
+			link.innerText = fixedUrl;	
+		}
+    }
+	
     /******************************************/
     /* GUI ************************************/
     /******************************************/
