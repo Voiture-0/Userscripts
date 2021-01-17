@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         D.GG Extra Features
 // @namespace    http://tampermonkey.net/
-// @version      1.14.1
+// @version      1.14.2
 // @description  Adds features to the destiny.gg chat
 // @author       Voiture
 // @include      /https:\/\/www\.destiny\.gg\/embed\/chat.*/
@@ -1171,8 +1171,8 @@
     }
 
     function saveMessageStartingLeft() {
-        config.startingLeft = getOwnStartingLeft(config.username);
-        $('#voiture-options-starting-left').val(config.startingLeft);
+        config.messageStartingLeft = getOwnStartingLeft(config.username);
+        $('#voiture-options-starting-left').val(config.messageStartingLeft);
         saveConfig();
     }
 
